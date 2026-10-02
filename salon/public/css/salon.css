@@ -577,23 +577,37 @@ body.salon-cal-dragging {
    ============================================================ */
 body.salon-full-chrome #navbar,
 body.salon-full-chrome .navbar,
-body.salon-full-chrome #body > .page-head,
-body.salon-full-chrome .page-head:not(.salon-main *),
+body.salon-full-chrome .page-head,
 body.salon-full-chrome .page-breadcrumbs,
 body.salon-full-chrome #body-sidebar,
 body.salon-full-chrome .desk-sidebar,
 body.salon-full-chrome .offline-status-banner {
 	display: none !important;
 }
-/* Our page fills the space the navbar used to occupy. */
+/* Frappe's own page shell centers content in a max-width .container
+   (Bootstrap-style), which is what leaves blank gutters down the
+   left/right on anything wider than that max-width, and reserves
+   top space for the navbar even once it's hidden above. Strip all of
+   that so our shell is the only thing determining layout. */
+body.salon-full-chrome,
 body.salon-full-chrome #body,
 body.salon-full-chrome .content,
-body.salon-full-chrome .main-section {
-	margin-top: 0 !important;
+body.salon-full-chrome .main-section,
+body.salon-full-chrome .page-container,
+body.salon-full-chrome .container,
+body.salon-full-chrome .page-wrapper,
+body.salon-full-chrome .page-body {
+	margin: 0 !important;
+	padding: 0 !important;
+	max-width: none !important;
+	width: 100% !important;
+}
+body.salon-full-chrome {
 	padding-top: 0 !important;
 }
 body.salon-full-chrome .salon-shell {
 	min-height: 100vh;
+	width: 100%;
 }
 
 /* ---- shared page chrome for Bookings / Client 360 ---- */
