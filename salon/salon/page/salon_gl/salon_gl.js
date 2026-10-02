@@ -58,7 +58,7 @@ class SalonGL {
 				return `
 					<div class="salon-je-card">
 						<div class="salon-je-head">
-							<span>${frappe.utils.escape_html(p.voucher_type)} &middot; <a href="/app/${frappe.router.slug(p.voucher_type)}/${p.voucher_no}">${p.voucher_no}</a></span>
+							<span>${frappe.utils.escape_html(p.voucher_type)} &middot; ${salon_common.doc_link(frappe.router.slug(p.voucher_type), p.voucher_no)}</span>
 							<span class="sub">${p.lines[0] ? frappe.datetime.str_to_user(p.lines[0].posting_date) : ''}</span>
 						</div>
 						${lines}

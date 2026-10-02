@@ -128,7 +128,7 @@ class SalonClient360 {
 						<div class="salon-timeline-content">
 							<div class="t">${frappe.utils.escape_html(v.services_label || '')} &middot; ${format_currency(v.total_amount || 0)}</div>
 							<div class="d">Stylist: ${frappe.utils.escape_html(v.salon_stylist_name || '')}
-								${v.sales_invoice ? ' &middot; <a href="/app/sales-invoice/' + v.sales_invoice + '">' + v.sales_invoice + '</a>' : ''}
+								${v.sales_invoice ? ' &middot; ' + salon_common.doc_link('sales-invoice', v.sales_invoice) : ''}
 							</div>
 						</div>
 					</div>

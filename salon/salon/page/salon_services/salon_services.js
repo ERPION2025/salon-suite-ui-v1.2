@@ -47,7 +47,7 @@ class SalonServices {
 					.map(
 						(s) => `
 				<tr>
-					<td><a href="/app/item/${s.name}">${s.name}</a></td>
+					<td>${salon_common.doc_link('item', s.name)}</td>
 					<td>${frappe.utils.escape_html(s.item_name || '')}</td>
 					<td>${frappe.utils.escape_html(s.item_group || '')}</td>
 					<td>${format_currency(s.rate || 0)}</td>

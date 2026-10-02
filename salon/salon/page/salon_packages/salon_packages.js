@@ -64,7 +64,7 @@ class SalonPackages {
 					.map(
 						(s) => `
 				<tr>
-					<td><a href="/app/package-subscription/${s.name}">${s.name}</a></td>
+					<td>${salon_common.doc_link('package-subscription', s.name)}</td>
 					<td>${frappe.utils.escape_html(s.customer || '')}</td>
 					<td>${frappe.utils.escape_html(s.package_item || '')}</td>
 					<td>${s.sessions_remaining} of ${s.sessions_total} left</td>

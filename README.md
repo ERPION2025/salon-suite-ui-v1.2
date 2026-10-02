@@ -52,12 +52,24 @@ Covers:
   field points at `/app/salon-dashboard`, so Salon User lands there on
   login — System Manager and any other role keep Frappe's normal
   default landing page, untouched.
-- **Full-chrome mode** — Frappe's own navbar, breadcrumbs, and desk
-  sidebar are hidden site-wide, but **only for the `Salon User` role
-  specifically** (`salon/public/js/salon_common.js` + the
-  `.salon-full-chrome` rules in `salon.css`) — not "everyone except
-  System Manager." A general ERPNext user with no salon role at all
-  keeps their normal experience too.
+- **Full-screen salon shell** — on every salon screen, for **every**
+  user (System Manager included), Frappe's navbar (logo, search,
+  notifications, avatar), page head, sidebars and container gutters
+  are hidden and the salon shell covers the whole viewport, like the
+  native POS register. The salon sidebar footer carries the signed-in
+  user and **Log out**, plus **Open ERPNext** for non-salon-only users.
+  (`salon/public/js/salon_common.js` toggles `body.salon-page`;
+  rules in `salon.css`.)
+- **Salon User lock-down** — an account with `Salon User` and *without*
+  `System Manager` (`body.salon-locked`) can only reach the 12 salon
+  screens and the POS register; any other `/app` route (lists, forms,
+  reports, workspaces, settings) bounces back to the Salon Dashboard.
+  Native document links on salon screens render as plain text for them,
+  booking links open a salon booking dialog (status actions + Complete
+  & Bill) instead of the native form, and native "New …" buttons they
+  have no permission for are hidden. On the POS register they get a
+  "← Salon Suite" pill to return. System Manager keeps normal Desk
+  everywhere outside the salon screens.
 - **Client preferences** — `Customer` gained 6 Custom Fields (stylist
   preference, color formula, allergies, birthday — see
   `salon/fixtures/custom_field.json`) backing Client 360's Preferences
@@ -130,8 +142,8 @@ bench restart
   (User → Roles). The role itself, and what it can access, ships with
   the app (`salon/setup.py`) — this is the one remaining manual step,
   since deciding which humans get it isn't something a fixture can do.
-  Don't also give these accounts "System Manager" — that overrides
-  full-chrome mode and the salon-only landing page.
+  Don't also give these accounts "System Manager" — that lifts the
+  salon-only lock-down and the salon-only landing page.
 - Tag package Items with Item Group `Packages`, and mark each
   non-stock service Item's `Is Stock Item = 0` — both are how the
   Packages and Services pages tell package Items apart from bookable

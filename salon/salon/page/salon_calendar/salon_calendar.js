@@ -334,7 +334,7 @@ class SalonCalendar {
 				document.body.classList.remove('salon-cal-dragging');
 
 				if (!moved) {
-					frappe.set_route('Form', 'Salon Booking', booking.name);
+					salon_common.open_booking(booking.name, () => this.load_data());
 					return;
 				}
 
@@ -458,7 +458,7 @@ class SalonCalendar {
 			<div class="cal-booking-service">${service_html}</div>
 		`;
 		el.addEventListener('click', () => {
-			frappe.set_route('Form', 'Salon Booking', b.name);
+			salon_common.open_booking(b.name, () => this.load_data());
 		});
 		if (!locked) {
 			el.addEventListener('dragstart', (e) => {
@@ -506,43 +506,11 @@ class SalonCalendar {
 	}
 
 	open_quick_dialog(prefill) {
-		const d = new frappe.ui.Dialog({
-			title: __('New Booking'),
-			fields: [
-				{ fieldname: 'customer', label: __('Client'), fieldtype: 'Link', options: 'Customer', reqd: 1 },
-				{
-					fieldname: 'salon_stylist',
-					label: __('Stylist'),
-					fieldtype: 'Link',
-					options: 'Salon Stylist',
-					reqd: 1,
-					default: prefill.salon_stylist,
-				},
-				{
-					fieldname: 'booking_datetime',
-					label: __('Date & Time'),
-					fieldtype: 'Datetime',
-					reqd: 1,
-					default: prefill.booking_datetime,
-				},
-				{ fieldname: 'item', label: __('Service'), fieldtype: 'Link', options: 'Item', reqd: 1 },
-			],
-			primary_action_label: __('Create'),
-			primary_action: (values) => {
-				frappe
-					.call({
-						method: 'salon.api.create_quick_booking',
-						args: Object.assign({}, values, { cost_center: this.cost_center }),
-						freeze: true,
-					})
-					.then(() => {
-						d.hide();
-						frappe.show_alert({ message: __('Booking created'), indicator: 'green' });
-						this.load_data();
-					});
-			},
+		salon_common.open_quick_booking({
+			prefill,
+			cost_center: this.cost_center,
+			on_done: () => this.load_data(),
 		});
-		d.show();
 	}
 
 	// -- helpers --

@@ -37,7 +37,7 @@ class SalonBookings {
 			</div>
 		`;
 		document.getElementById('salon-new-booking').addEventListener('click', () => {
-			frappe.new_doc('Salon Booking');
+			salon_common.open_quick_booking({ on_done: () => this.load_data() });
 		});
 	}
 
@@ -53,21 +53,29 @@ class SalonBookings {
 			body.innerHTML = '<tr><td colspan="10">No bookings yet.</td></tr>';
 			return;
 		}
+		body.onclick = (e) => {
+			const link = e.target.closest('.salon-booking-link');
+			if (!link) return;
+			e.preventDefault();
+			salon_common.open_booking(link.dataset.booking, () => this.load_data());
+		};
 		body.innerHTML = rows
 			.map((r) => {
 				const status_class = (r.status || '').toLowerCase().replace(/\s+/g, '-');
 				let invoice_cell = '<span class="salon-status salon-status-no-show">&mdash;</span>';
 				if (r.sales_invoice && r.invoice_docstatus === 1) {
-					invoice_cell = `<a href="/app/sales-invoice/${r.sales_invoice}">${r.sales_invoice}</a>`;
+					invoice_cell = salon_common.doc_link('sales-invoice', r.sales_invoice);
 				} else if (r.sales_invoice) {
-					invoice_cell = `<a href="/app/sales-invoice/${r.sales_invoice}"><span class="salon-status">Draft (POS)</span></a>`;
+					invoice_cell = salon_common.is_salon_only()
+						? '<span class="salon-status">Draft (POS)</span>'
+						: `<a href="/app/sales-invoice/${encodeURIComponent(r.sales_invoice)}"><span class="salon-status">Draft (POS)</span></a>`;
 				}
 				const stock_cell = r.stock_entry
-					? `<a href="/app/stock-entry/${r.stock_entry}">${r.stock_entry}</a>`
+					? salon_common.doc_link('stock-entry', r.stock_entry)
 					: '<span class="salon-status salon-status-no-show">&mdash;</span>';
 				return `
 				<tr>
-					<td><a href="/app/salon-booking/${r.name}">${r.name}</a></td>
+					<td><a href="#" class="salon-booking-link" data-booking="${frappe.utils.escape_html(r.name)}">${frappe.utils.escape_html(r.name)}</a></td>
 					<td>${frappe.datetime.str_to_user(r.booking_datetime)} ${frappe.datetime.str_to_user(r.booking_datetime, true)}</td>
 					<td>${frappe.utils.escape_html(r.cost_center || '')}</td>
 					<td>${frappe.utils.escape_html(r.customer || '')}</td>

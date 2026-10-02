@@ -22,7 +22,7 @@ class SalonPnl {
 							<h1>P&amp;L by Branch</h1>
 							<p id="salon-pnl-period">This month, by account</p>
 						</div>
-						<a class="salon-btn" style="text-decoration:none" href="/app/query-report/Profit and Loss Statement">Full Report &rarr;</a>
+						${salon_common.is_salon_only() ? '' : '<a class="salon-btn" style="text-decoration:none" href="/app/query-report/Profit and Loss Statement">Full Report &rarr;</a>'}
 					</div>
 					<div class="salon-summary-row" id="salon-pnl-summary"></div>
 					<div id="salon-pnl-tables"></div>

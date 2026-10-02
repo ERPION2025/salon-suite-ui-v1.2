@@ -69,9 +69,9 @@ class SalonStock {
 					.map(
 						(e) => `
 				<tr>
-					<td><a href="/app/stock-entry/${e.name}">${e.name}</a></td>
+					<td>${salon_common.doc_link('stock-entry', e.name)}</td>
 					<td>${frappe.datetime.str_to_user(e.posting_date)}</td>
-					<td>${e.booking ? '<a href="/app/salon-booking/' + e.booking + '">' + e.booking + '</a>' : '&mdash;'}</td>
+					<td>${e.booking ? `<a href="/app/salon-booking/${encodeURIComponent(e.booking)}">${frappe.utils.escape_html(e.booking)}</a>` : '&mdash;'}</td>
 					<td>${frappe.utils.escape_html(e.items_label || '')}</td>
 				</tr>
 			`
