@@ -23,23 +23,41 @@ Covers:
 - **Salon Service Recipe** / **Recipe Consumable** — raw materials a
   service consumes, for automatic stock deduction.
 - **Package Subscription** — prepaid session packages redeemed by bookings.
-- **Four fully custom pages**: **Dashboard** (`/app/salon-dashboard`,
-  live KPIs + store-wise sales breakdown), **Calendar**
+- **Twelve fully custom pages** — every sidebar entry except one is
+  now our own page, not a native Desk view:
+  **Dashboard** (`/app/salon-dashboard`), **Calendar**
   (`/app/salon-calendar`, drag-to-reschedule grid + Kanban board),
-  **All Bookings** (`/app/salon-bookings`, styled table with
-  draft/submitted invoice status), and **Client 360°**
-  (`/app/salon-client-360`, search + profile + Preferences panel +
-  visit timeline). The remaining sidebar links (Packages, Services,
-  Stylists, Stock) still point at the native Desk list view for that
-  doctype — not yet rebuilt as custom pages; POS & Invoicing routes
-  System Managers to the Sales Invoice list and everyone else straight
-  into the POS register.
+  **All Bookings** (`/app/salon-bookings`), **Client 360°**
+  (`/app/salon-client-360`), **Loyalty** (`/app/salon-loyalty`, tier
+  cards from your real Loyalty Program), **Packages**
+  (`/app/salon-packages`, pricing cards + active subscriptions),
+  **Services** (`/app/salon-services`), **Stylists & Employees**
+  (`/app/salon-stylists`, roster + today's Attendance), **Stock &
+  Consumables** (`/app/salon-stock`), **Payroll & Commissions**
+  (`/app/salon-payroll`, month-to-date commission per stylist), **GL
+  Postings** (`/app/salon-gl`, narrated journal cards), and **P&L by
+  Branch** (`/app/salon-pnl`, simplified Revenue/Expense from GL Entry
+  — see the page itself for what it deliberately leaves out, with a
+  link to the real Financial Statement report for anything audited).
+  **POS & Invoicing is the one deliberate exception** — it routes to
+  ERPNext's native Point of Sale register (`/app/point-of-sale`) for
+  every role, by design, not a custom page and never the Sales Invoice
+  list.
+- **`Salon User` role** (`salon/setup.py`, run via `after_migrate` —
+  not a hand-written fixture, since `Custom DocPerm` autonames via an
+  unpredictable hash) — grants exactly the doctype access the 12 pages
+  need (Customer, Item, Sales Invoice incl. submit, Stock Entry, Bin,
+  GL Entry, Loyalty Program, Attendance, POS Profile/Opening/Closing
+  Entry, Cost Center, Warehouse) and nothing else. Its own `home_page`
+  field points at `/app/salon-dashboard`, so Salon User lands there on
+  login — System Manager and any other role keep Frappe's normal
+  default landing page, untouched.
 - **Full-chrome mode** — Frappe's own navbar, breadcrumbs, and desk
-  sidebar are hidden site-wide for everyone except System Managers
-  (`salon/public/js/salon_common.js` + the `.salon-full-chrome` rules
-  in `salon.css`), so non-admin users only ever see this app's own
-  shell, not stock Desk chrome. Admin accounts are untouched, so setup
-  and troubleshooting still has normal Desk access underneath.
+  sidebar are hidden site-wide, but **only for the `Salon User` role
+  specifically** (`salon/public/js/salon_common.js` + the
+  `.salon-full-chrome` rules in `salon.css`) — not "everyone except
+  System Manager." A general ERPNext user with no salon role at all
+  keeps their normal experience too.
 - **Client preferences** — `Customer` gained 6 Custom Fields (stylist
   preference, color formula, allergies, birthday — see
   `salon/fixtures/custom_field.json`) backing Client 360's Preferences
@@ -108,6 +126,16 @@ bench restart
 - Optional: a **Salon Service Recipe** per service Item, listing the raw
   materials it consumes — only services with a recipe generate a Stock
   Entry on completion.
+- Assign the **Salon User** role to each front-desk/stylist account
+  (User → Roles). The role itself, and what it can access, ships with
+  the app (`salon/setup.py`) — this is the one remaining manual step,
+  since deciding which humans get it isn't something a fixture can do.
+  Don't also give these accounts "System Manager" — that overrides
+  full-chrome mode and the salon-only landing page.
+- Tag package Items with Item Group `Packages`, and mark each
+  non-stock service Item's `Is Stock Item = 0` — both are how the
+  Packages and Services pages tell package Items apart from bookable
+  services.
 
 ## Branding
 
@@ -117,17 +145,28 @@ suite matches the rest of your ERPNext instance.
 
 ## Extending
 
-Four screens are fully custom today: Dashboard, Calendar, Bookings,
-Client 360. **Packages, Services, Stylists, and Stock still fall back
-to native Desk list views on purpose** — their sidebar links in
-`salon_common.js` point at `/app/package-subscription`, `/app/item`,
-etc. Deliberately not restricted by role permissions yet, because doing
-that before building their custom-page replacements would lock
-non-admin users out of functionality that currently only exists as
-those native views. Build order: finish the custom page for a screen
-first, *then* tighten its permissions — never the other way round.
+All 12 sidebar entries are custom pages except POS & Invoicing, which
+deliberately stays on ERPNext's native Point of Sale register. Adding
+another one follows the same pattern every page here uses — a Page
+record + a JS file rendering into `page.body` + a whitelisted method in
+`salon/api.py`, using `salon_common.render_sidebar_html(key)` for the
+sidebar. If it touches a doctype `Salon User` doesn't already have a
+grant for, add that doctype to the `GRANTS` list in `salon/setup.py` —
+it'll pick it up on the next `bench migrate`, no manual Custom DocPerm
+needed.
 
-Building one out follows the same pattern every page here already
-uses — a Page record + a JS file rendering into `page.body` + a
-whitelisted method in `salon/api.py`, using `salon_common.render_sidebar_html(key)`
-for the sidebar rather than hand-rolling it per page.
+### Known simplifications, stated plainly
+- **P&L by Branch** aggregates GL Entry directly by account — it does
+  not replicate ERPNext's full Financial Statement engine (no budgets,
+  no prior-year comparison, no multi-currency). Treat it as an at-a-
+  glance view; the page itself links to the real report for anything
+  that needs to be audited or shared externally.
+- **Payroll & Commissions** shows accrued `Additional Salary` entries
+  (the `Service Commission` component), not a full Salary Slip
+  earnings breakdown. Run normal Payroll for the authoritative payslip.
+- **Stylists & Employees**' attendance table reads the native
+  `Attendance` doctype directly (status/in_time/out_time/working_hours)
+  — there's no native "hours booked vs. worked" utilisation metric, so
+  that's not shown; building it would mean defining what "booked
+  hours" means yourselves first (e.g. against a shift/roster doctype
+  that doesn't exist yet).

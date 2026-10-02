@@ -775,3 +775,116 @@ body.salon-full-chrome .salon-shell {
 }
 .salon-timeline-content .t { font-size: 13px; font-weight: 500; color: #1a1a1a; }
 .salon-timeline-content .d { font-size: 12px; color: #8a8a8a; margin-top: 2px; }
+
+/* ---- loyalty tiers ---- */
+.salon-tier-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 16px;
+	margin-bottom: 28px;
+}
+.salon-tier-card {
+	background: #fff;
+	border: 1px solid #eee;
+	border-top: 3px solid #e4002b;
+	border-radius: 10px;
+	padding: 18px;
+}
+.salon-tier-card h3 {
+	font-size: 15px;
+	font-weight: 600;
+	margin: 0 0 2px;
+	color: #1a1a1a;
+}
+.salon-tier-card .threshold {
+	font-size: 11px;
+	color: #9a9a9a;
+	margin-bottom: 10px;
+}
+.salon-tier-card .factor {
+	font-size: 13px;
+	color: #4a4a4a;
+}
+
+/* ---- pricing cards (packages) ---- */
+.salon-pricing-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	gap: 16px;
+	margin-bottom: 28px;
+}
+.salon-pricing-card {
+	background: #fff;
+	border: 1px solid #eee;
+	border-radius: 10px;
+	padding: 20px;
+}
+.salon-pricing-card h3 {
+	font-size: 15px;
+	font-weight: 600;
+	margin: 0 0 4px;
+	color: #1a1a1a;
+}
+.salon-pricing-card .desc {
+	font-size: 12px;
+	color: #9a9a9a;
+	margin-bottom: 12px;
+	min-height: 16px;
+}
+.salon-pricing-card .price {
+	font-size: 24px;
+	font-weight: 600;
+	color: #e4002b;
+}
+
+/* ---- GL journal cards ---- */
+.salon-je-card {
+	background: #fff;
+	border: 1px solid #eee;
+	border-radius: 10px;
+	padding: 16px 18px;
+	margin-bottom: 14px;
+}
+.salon-je-head {
+	display: flex;
+	justify-content: space-between;
+	font-size: 13px;
+	font-weight: 500;
+	color: #1a1a1a;
+	margin-bottom: 10px;
+}
+.salon-je-head .sub {
+	font-weight: 400;
+	color: #9a9a9a;
+	font-size: 12px;
+}
+.salon-je-line {
+	display: grid;
+	grid-template-columns: 1fr 90px 90px;
+	font-size: 12px;
+	padding: 4px 0;
+	color: #4a4a4a;
+}
+.salon-je-line.credit { padding-left: 16px; color: #9a9a9a; }
+.salon-je-line .amt { text-align: right; }
+
+/* ---- summary / total cards used by Payroll, P&L ---- */
+.salon-summary-row {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+	gap: 16px;
+	margin: 20px 0;
+}
+.salon-pnl-section-title {
+	font-size: 12px;
+	font-weight: 600;
+	color: #9a9a9a;
+	text-transform: uppercase;
+	letter-spacing: 0.4px;
+	margin: 20px 0 8px;
+}
+.salon-pnl-total-row td {
+	font-weight: 600;
+	color: #1a1a1a;
+	border-top: 2px solid #1a1a1a !important;
+}

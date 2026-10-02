@@ -12,9 +12,9 @@ window.salon_common = {
 		{
 			title: 'Programs',
 			items: [
-				{ key: 'loyalty', label: 'Loyalty', href: '/app/loyalty-program' },
-				{ key: 'packages', label: 'Packages', href: '/app/package-subscription' },
-				{ key: 'services', label: 'Services', href: '/app/item' },
+				{ key: 'loyalty', label: 'Loyalty', href: '/app/salon-loyalty' },
+				{ key: 'packages', label: 'Packages', href: '/app/salon-packages' },
+				{ key: 'services', label: 'Services', href: '/app/salon-services' },
 			],
 		},
 		{
@@ -23,28 +23,27 @@ window.salon_common = {
 				{
 					key: 'pos',
 					label: 'POS & Invoicing',
-					// Admins manage invoices directly; everyone else (cashiers,
-					// branch staff on a POS Profile) goes straight to the POS
-					// register instead of the raw Sales Invoice list.
-					href: () => (frappe.user.has_role('System Manager') ? '/app/sales-invoice' : '/app/point-of-sale'),
+					// Always the native POS register — never the raw Sales
+					// Invoice list, for any role, for now.
+					href: '/app/point-of-sale',
 				},
-				{ key: 'gl', label: 'GL Postings', href: '/app/gl-entry' },
+				{ key: 'gl', label: 'GL Postings', href: '/app/salon-gl' },
 			],
 		},
 		{
 			title: 'Inventory — ERPNext',
-			items: [{ key: 'stock', label: 'Stock & Consumables', href: '/app/stock-entry' }],
+			items: [{ key: 'stock', label: 'Stock & Consumables', href: '/app/salon-stock' }],
 		},
 		{
 			title: 'HR & Payroll — ERPNext',
 			items: [
-				{ key: 'stylists', label: 'Stylists / Employees', href: '/app/salon-stylist' },
-				{ key: 'payroll', label: 'Payroll & Commissions', href: '/app/salary-slip' },
+				{ key: 'stylists', label: 'Stylists / Employees', href: '/app/salon-stylists' },
+				{ key: 'payroll', label: 'Payroll & Commissions', href: '/app/salon-payroll' },
 			],
 		},
 		{
 			title: 'Finance — ERPNext',
-			items: [{ key: 'pnl', label: 'P&L by Branch', href: '/app/query-report/Profit and Loss Statement' }],
+			items: [{ key: 'pnl', label: 'P&L by Branch', href: '/app/salon-pnl' }],
 		},
 	],
 
@@ -79,14 +78,14 @@ window.salon_common = {
 	},
 };
 
-// Full-chrome mode: hide Frappe's own navbar/sidebar/breadcrumbs for
-// everyone except System Managers, site-wide — not just on our custom
-// pages. This file is already loaded on every Desk page via
-// app_include_js, so this runs everywhere automatically. Mirrors the
-// same admin/non-admin split salon/salon/permissions.py already uses
-// for row-level scoping, rather than introducing a second, separate
-// "is this a salon user" concept.
+// Full-chrome mode: hide Frappe's own navbar/sidebar/breadcrumbs,
+// site-wide, ONLY for users with the Salon User role (and never for
+// System Manager, even if they also happen to have Salon User - admins
+// always keep normal Desk). Anyone else - other ERPNext users with no
+// stake in the salon side at all - is untouched either way. This file
+// is already loaded on every Desk page via app_include_js, so this
+// runs everywhere automatically, not just on our own custom pages.
 frappe.ready(() => {
-	const is_admin = frappe.user.has_role('System Manager');
-	document.body.classList.toggle('salon-full-chrome', !is_admin);
+	const is_salon_only = frappe.user.has_role('Salon User') && !frappe.user.has_role('System Manager');
+	document.body.classList.toggle('salon-full-chrome', is_salon_only);
 });

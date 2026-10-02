@@ -1,0 +1,8 @@
+{
+ "doctype": "Page",
+ "name": "salon-services",
+ "module": "Salon",
+ "title": "Services Catalog",
+ "page_name": "salon-services",
+ "standard": "Yes"
+}

@@ -15,10 +15,10 @@ required_apps = ["erpnext", "hrms"]
 app_include_css = "/assets/salon/css/salon.css"
 app_include_js = "/assets/salon/js/salon_common.js"
 
-# Landing page when a user switches into the "Salon Suite" app from the
-# app switcher (top-left). Without this, Frappe falls back to the generic
-# auto-generated Workspace instead of our custom Dashboard.
-app_home = "/app/salon-dashboard"
+# Landing page for Salon User specifically is set on the Role itself
+# (home_page field, see salon/setup.py) rather than here - app_home would
+# force EVERY user, System Manager included, onto the salon dashboard,
+# which is exactly what "system manager can see rest of them" rules out.
 
 # Store/branch isolation: non-System Manager users (POS Profile cashiers,
 # stylists) only ever see Salon Bookings for their own Cost Center, in the
@@ -46,3 +46,9 @@ doc_events = {
 # Client 360's Preferences panel (stylist/color formula/allergies/
 # birthday) reads these straight off the real Customer doctype.
 fixtures = ["Custom Field"]
+
+# Creates the "Salon User" role (with its own home_page) and grants it
+# exactly the doctype permissions the 9 custom pages need - idempotent,
+# reruns safely on every migrate. See salon/setup.py for why this isn't
+# a fixture (Custom DocPerm autonames via an unpredictable hash).
+after_migrate = "salon.setup.after_migrate"

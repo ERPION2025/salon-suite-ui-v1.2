@@ -1,6 +1,6 @@
 import frappe
 from frappe import _
-from frappe.utils import get_datetime, today
+from frappe.utils import flt, get_datetime, today
 
 from salon.salon.permissions import (
 	check_cost_center_access,
@@ -360,6 +360,246 @@ def get_client_360(customer):
 		"stats": {"visits": len(visits), "ltv": ltv, "loyalty_points": loyalty_points},
 		"active_package": package[0] if package else None,
 		"visits": visits,
+	}
+
+
+@frappe.whitelist()
+def get_loyalty_data():
+	programs = frappe.get_all(
+		"Loyalty Program",
+		fields=["name", "loyalty_program_name", "conversion_factor", "expiry_duration"],
+	)
+	for p in programs:
+		p["tiers"] = frappe.get_all(
+			"Loyalty Program Collection",
+			filters={"parent": p.name},
+			fields=["tier_name", "min_spent", "collection_factor"],
+			order_by="min_spent asc",
+		)
+	return {"programs": programs}
+
+
+@frappe.whitelist()
+def get_packages_data(cost_center=None):
+	cost_center = resolve_cost_center_filter(cost_center)
+
+	packages = frappe.get_all(
+		"Item",
+		filters={"item_group": "Packages", "disabled": 0},
+		fields=["name", "item_name", "description"],
+	)
+	for p in packages:
+		p["rate"] = frappe.db.get_value(
+			"Item Price", {"item_code": p.name, "selling": 1}, "price_list_rate"
+		) or 0
+
+	sub_filters = {"status": "Active"}
+	subs = frappe.get_all(
+		"Package Subscription",
+		filters=sub_filters,
+		fields=["name", "customer", "package_item", "sessions_total", "sessions_used", "sessions_remaining", "expiry_date"],
+		order_by="expiry_date asc",
+		limit_page_length=50,
+	)
+	return {"packages": packages, "subscriptions": subs}
+
+
+@frappe.whitelist()
+def get_services_data():
+	services = frappe.get_all(
+		"Item",
+		filters={"is_stock_item": 0, "disabled": 0},
+		fields=["name", "item_name", "item_group"],
+	)
+	codes = [s.name for s in services]
+	prices = {}
+	if codes:
+		prices = dict(
+			frappe.get_all(
+				"Item Price", filters={"item_code": ["in", codes], "selling": 1}, fields=["item_code", "price_list_rate"], as_list=True
+			)
+		)
+	for s in services:
+		s["rate"] = prices.get(s.name, 0)
+		s["has_recipe"] = frappe.db.exists("Salon Service Recipe", s.name) is not None
+	return services
+
+
+@frappe.whitelist()
+def get_stylists_data(cost_center=None):
+	cost_center = resolve_cost_center_filter(cost_center)
+	filters = {}
+	if cost_center:
+		filters["cost_center"] = cost_center
+
+	stylists = frappe.get_all(
+		"Salon Stylist",
+		filters=filters,
+		fields=["name", "stylist_name", "employee", "cost_center", "skills", "commission_rate"],
+		order_by="stylist_name asc",
+	)
+
+	employee_ids = [s.employee for s in stylists if s.employee]
+	designations = {}
+	if employee_ids:
+		designations = dict(
+			frappe.get_all("Employee", filters={"name": ["in", employee_ids]}, fields=["name", "designation"], as_list=True)
+		)
+	for s in stylists:
+		s["designation"] = designations.get(s.employee)
+
+	attendance = []
+	if employee_ids:
+		attendance = frappe.get_all(
+			"Attendance",
+			filters={"employee": ["in", employee_ids], "attendance_date": today(), "docstatus": ["!=", 2]},
+			fields=["employee", "employee_name", "status", "in_time", "out_time", "working_hours"],
+		)
+	return {"stylists": stylists, "attendance": attendance}
+
+
+@frappe.whitelist()
+def get_stock_data(cost_center=None):
+	cost_center = resolve_cost_center_filter(cost_center)
+
+	warehouse_filters = {}
+	if cost_center:
+		pos_profiles = frappe.get_all("POS Profile", filters={"cost_center": cost_center}, pluck="warehouse")
+		warehouse_filters["warehouse"] = ["in", pos_profiles or [""]]
+
+	stock = frappe.get_all(
+		"Bin",
+		filters=warehouse_filters,
+		fields=["item_code", "warehouse", "actual_qty", "reserved_qty", "valuation_rate"],
+		order_by="item_code asc",
+		limit_page_length=100,
+	)
+	stock = [s for s in stock if flt(s.actual_qty) or flt(s.reserved_qty)]
+
+	entry_filters = {"stock_entry_type": "Material Issue"}
+	if cost_center:
+		entry_filters["cost_center"] = cost_center
+	recent_entries = frappe.get_all(
+		"Stock Entry",
+		filters=entry_filters,
+		fields=["name", "posting_date", "posting_time", "stock_entry_type"],
+		order_by="creation desc",
+		limit_page_length=10,
+	)
+	for e in recent_entries:
+		e["items_label"] = ", ".join(
+			f"{i.item_code} x{i.qty}"
+			for i in frappe.get_all("Stock Entry Detail", filters={"parent": e.name}, fields=["item_code", "qty"])
+		)
+		e["booking"] = frappe.db.get_value("Salon Booking", {"stock_entry": e.name}, "name")
+
+	return {"stock": stock, "recent_entries": recent_entries}
+
+
+@frappe.whitelist()
+def get_payroll_data(cost_center=None):
+	cost_center = resolve_cost_center_filter(cost_center)
+
+	stylist_filters = {}
+	if cost_center:
+		stylist_filters["cost_center"] = cost_center
+	stylists = frappe.get_all("Salon Stylist", filters=stylist_filters, fields=["name", "stylist_name", "employee", "commission_rate"])
+
+	from frappe.utils import get_first_day, get_last_day
+	month_start = get_first_day(today())
+	month_end = get_last_day(today())
+
+	rows = []
+	total = 0
+	for s in stylists:
+		amount = frappe.db.sql(
+			"""select coalesce(sum(amount), 0) from `tabAdditional Salary`
+			where employee = %(employee)s and salary_component = 'Service Commission'
+			and payroll_date between %(start)s and %(end)s and docstatus = 1""",
+			{"employee": s.employee, "start": month_start, "end": month_end},
+		)[0][0]
+		count = frappe.db.count(
+			"Additional Salary",
+			filters={"employee": s.employee, "salary_component": "Service Commission", "payroll_date": ["between", [month_start, month_end]], "docstatus": 1},
+		)
+		rows.append({"stylist_name": s.stylist_name, "employee": s.employee, "commission_rate": s.commission_rate, "entries": count, "amount": amount})
+		total += amount
+
+	return {"rows": rows, "total": total, "month_start": month_start, "month_end": month_end}
+
+
+@frappe.whitelist()
+def get_gl_postings(cost_center=None, limit=30):
+	cost_center = resolve_cost_center_filter(cost_center)
+
+	filters = {"is_cancelled": 0}
+	if cost_center:
+		filters["cost_center"] = cost_center
+
+	vouchers = frappe.get_all(
+		"GL Entry",
+		filters=filters,
+		fields=["voucher_type", "voucher_no"],
+		order_by="creation desc",
+		limit_page_length=limit,
+		group_by="voucher_type, voucher_no",
+	)
+
+	postings = []
+	for v in vouchers:
+		lines = frappe.get_all(
+			"GL Entry",
+			filters={"voucher_type": v.voucher_type, "voucher_no": v.voucher_no, "is_cancelled": 0},
+			fields=["account", "debit", "credit", "cost_center", "posting_date", "remarks", "party"],
+			order_by="idx asc",
+		)
+		if lines:
+			postings.append({"voucher_type": v.voucher_type, "voucher_no": v.voucher_no, "lines": lines})
+
+	return postings
+
+
+@frappe.whitelist()
+def get_pnl_data(cost_center=None):
+	cost_center = resolve_cost_center_filter(cost_center)
+	from frappe.utils import get_first_day, get_last_day
+
+	month_start = get_first_day(today())
+	month_end = get_last_day(today())
+
+	conditions = ["gl.posting_date between %(start)s and %(end)s", "gl.is_cancelled = 0"]
+	values = {"start": month_start, "end": month_end}
+	if cost_center:
+		conditions.append("gl.cost_center = %(cost_center)s")
+		values["cost_center"] = cost_center
+
+	rows = frappe.db.sql(
+		f"""
+		select acc.root_type, acc.account_name, sum(gl.credit - gl.debit) as net
+		from `tabGL Entry` gl
+		join `tabAccount` acc on acc.name = gl.account
+		where {' and '.join(conditions)}
+		group by acc.name
+		having net != 0
+		order by acc.root_type, net desc
+		""",
+		values,
+		as_dict=True,
+	)
+
+	revenue = [r for r in rows if r.root_type == "Income"]
+	expense = [r for r in rows if r.root_type == "Expense"]
+	total_revenue = sum(flt(r.net) for r in revenue)
+	total_expense = sum(flt(-r.net) for r in expense)
+
+	return {
+		"revenue": revenue,
+		"expense": expense,
+		"total_revenue": total_revenue,
+		"total_expense": total_expense,
+		"net_profit": total_revenue - total_expense,
+		"month_start": month_start,
+		"month_end": month_end,
 	}
 
 
