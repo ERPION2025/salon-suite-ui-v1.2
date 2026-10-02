@@ -1,6 +1,7 @@
 [
  {
   "doctype": "Custom Field",
+  "name": "Customer-custom_salon_preferences_section",
   "dt": "Customer",
   "fieldname": "custom_salon_preferences_section",
   "label": "Salon Preferences",
@@ -10,6 +11,7 @@
  },
  {
   "doctype": "Custom Field",
+  "name": "Customer-custom_preferred_stylist",
   "dt": "Customer",
   "fieldname": "custom_preferred_stylist",
   "label": "Preferred Stylist",
@@ -19,6 +21,7 @@
  },
  {
   "doctype": "Custom Field",
+  "name": "Customer-custom_color_formula",
   "dt": "Customer",
   "fieldname": "custom_color_formula",
   "label": "Color Formula",
@@ -27,6 +30,7 @@
  },
  {
   "doctype": "Custom Field",
+  "name": "Customer-custom_salon_cb_1",
   "dt": "Customer",
   "fieldname": "custom_salon_cb_1",
   "fieldtype": "Column Break",
@@ -34,6 +38,7 @@
  },
  {
   "doctype": "Custom Field",
+  "name": "Customer-custom_allergies",
   "dt": "Customer",
   "fieldname": "custom_allergies",
   "label": "Allergies",
@@ -42,6 +47,7 @@
  },
  {
   "doctype": "Custom Field",
+  "name": "Customer-custom_birthday",
   "dt": "Customer",
   "fieldname": "custom_birthday",
   "label": "Birthday",
