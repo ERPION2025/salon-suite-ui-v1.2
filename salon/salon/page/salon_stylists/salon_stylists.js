@@ -52,7 +52,7 @@ class SalonStylists {
 					.map(
 						(s) => `
 				<tr>
-					<td><a href="/app/employee/${s.employee}">${s.employee}</a></td>
+					<td>${salon_common.doc_link('employee', s.employee)}</td>
 					<td>${frappe.utils.escape_html(s.stylist_name || '')}</td>
 					<td>${frappe.utils.escape_html(s.designation || '')}</td>
 					<td>${frappe.utils.escape_html(s.cost_center || '')}</td>

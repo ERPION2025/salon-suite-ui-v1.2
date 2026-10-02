@@ -567,47 +567,244 @@ body.salon-cal-dragging {
 }
 
 /* ============================================================
-   Full-chrome mode — hides every native Desk element (navbar,
-   app switcher, notifications, standard page head/breadcrumbs)
-   so a Salon User sees ONLY our own shell, nothing of stock
-   Frappe anywhere. Applied by salon_common.js adding
-   `salon-full-chrome` to <body> for that role specifically —
-   System Manager accounts never get this class, so normal Desk
-   access for setup/troubleshooting is untouched.
+   Full-screen salon shell
+   ------------------------------------------------------------
+   salon_common.js toggles these <body> classes on every route:
+     .salon-page    - ANY user is on one of our salon screens
+     .salon-locked  - Salon User without System Manager (all pages)
+     .salon-on-pos  - the native POS register
+   On a salon screen nothing of Desk is shown: no navbar (logo,
+   search, notifications, avatar), no page head, no sidebars and
+   no container gutters - our shell owns the whole viewport, the
+   way the native POS register does.
    ============================================================ */
-body.salon-full-chrome #navbar,
-body.salon-full-chrome .navbar,
-body.salon-full-chrome .page-head,
-body.salon-full-chrome .page-breadcrumbs,
-body.salon-full-chrome #body-sidebar,
-body.salon-full-chrome .desk-sidebar,
-body.salon-full-chrome .offline-status-banner {
+body.salon-page .navbar,
+body.salon-page #navbar,
+body.salon-page .sticky-top:has(> .navbar),
+body.salon-page .page-head,
+body.salon-page .page-breadcrumbs,
+body.salon-page .layout-side-section,
+body.salon-page #body-sidebar,
+body.salon-page .desk-sidebar,
+body.salon-page .body-sidebar-container,
+body.salon-page .offline-status-banner,
+body.salon-locked .navbar,
+body.salon-locked #navbar,
+body.salon-locked .sticky-top:has(> .navbar),
+body.salon-locked .page-breadcrumbs,
+body.salon-locked .layout-side-section,
+body.salon-locked #body-sidebar,
+body.salon-locked .desk-sidebar,
+body.salon-locked .body-sidebar-container,
+body.salon-locked .offline-status-banner {
 	display: none !important;
 }
-/* Frappe's own page shell centers content in a max-width .container
-   (Bootstrap-style), which is what leaves blank gutters down the
-   left/right on anything wider than that max-width, and reserves
-   top space for the navbar even once it's hidden above. Strip all of
-   that so our shell is the only thing determining layout. */
-body.salon-full-chrome,
-body.salon-full-chrome #body,
-body.salon-full-chrome .content,
-body.salon-full-chrome .main-section,
-body.salon-full-chrome .page-container,
-body.salon-full-chrome .container,
-body.salon-full-chrome .page-wrapper,
-body.salon-full-chrome .page-body {
+/* Salon-only users: native page heads (title, filters, menus, action
+   buttons) are hidden everywhere except the POS register, which needs
+   its own toolbar for opening/closing the register. */
+body.salon-locked:not(.salon-on-pos) .page-head {
+	display: none !important;
+}
+/* While the route guard bounces a salon-only user off a native screen,
+   never paint that screen. */
+body.salon-locked:not(.salon-route-ok) #body {
+	visibility: hidden;
+}
+
+/* Frappe centres page content in a max-width Bootstrap .container with
+   row/col gutters and reserves space for the navbar - that is what left
+   the white strip on top and the white band on the left. Strip all of
+   it on salon screens so our shell is the only thing laying out. */
+body.salon-page,
+body.salon-page .main-section,
+body.salon-page #body,
+body.salon-page .page-container,
+body.salon-page .page-body,
+body.salon-page .page-body.container,
+body.salon-page .page-wrapper,
+body.salon-page .page-content,
+body.salon-page .layout-main,
+body.salon-page .layout-main-section-wrapper,
+body.salon-page .layout-main-section {
 	margin: 0 !important;
 	padding: 0 !important;
 	max-width: none !important;
 	width: 100% !important;
+	min-height: 0 !important;
+	border: 0 !important;
+	box-shadow: none !important;
+	background: transparent;
 }
-body.salon-full-chrome {
-	padding-top: 0 !important;
+body.salon-page {
+	overflow: hidden;
+	background: #fafafa;
 }
-body.salon-full-chrome .salon-shell {
-	min-height: 100vh;
-	width: 100%;
+body.salon-page .salon-shell {
+	position: fixed;
+	inset: 0;
+	height: 100vh;
+	height: 100dvh;
+	width: 100vw;
+	z-index: 1020;
+	background: #fafafa;
+}
+
+/* Sidebar footer: signed-in user + log out (+ "Open ERPNext" for admins),
+   since the native avatar menu is gone. */
+.salon-sidebar {
+	display: flex;
+	flex-direction: column;
+	padding: 0;
+	overflow: hidden;
+}
+.salon-sidebar-scroll {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	padding: 24px 16px;
+}
+.salon-user {
+	flex-shrink: 0;
+	border-top: 1px solid #eeeeee;
+	padding: 12px 16px 14px;
+	background: #ffffff;
+}
+.salon-user-id {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 8px;
+	min-width: 0;
+}
+.salon-user-avatar {
+	width: 26px;
+	height: 26px;
+	border-radius: 50%;
+	background: #fdeaee;
+	color: #e4002b;
+	font-size: 12px;
+	font-weight: 600;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+.salon-user-name {
+	font-size: 13px;
+	color: #1a1a1a;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.salon-user-actions {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+}
+.salon-user-action {
+	font-size: 12px;
+	color: #4a4a4a;
+	text-decoration: none;
+	padding: 4px 8px;
+	border: 1px solid #e5e5e5;
+	border-radius: 6px;
+}
+.salon-user-action:hover {
+	color: #e4002b;
+	border-color: #e4002b;
+	text-decoration: none;
+}
+
+/* Salon-only users: buttons that would open native create forms they
+   have no permission for anyway. */
+body.salon-locked #salon-new-stylist,
+body.salon-locked #salon-new-service,
+body.salon-locked #salon-new-package,
+body.salon-locked #salon-new-entry {
+	display: none !important;
+}
+
+/* "Back to Salon Suite" pill - only on the POS register, only for
+   salon-only users (they have no navbar there). */
+.salon-pos-back {
+	display: none;
+}
+body.salon-locked.salon-on-pos .salon-pos-back {
+	display: inline-flex;
+	position: fixed;
+	left: 16px;
+	bottom: 16px;
+	z-index: 1030;
+	padding: 8px 14px;
+	border-radius: 999px;
+	background: #e4002b;
+	color: #ffffff;
+	font-size: 13px;
+	font-weight: 500;
+	text-decoration: none;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+body.salon-locked.salon-on-pos .salon-pos-back:hover {
+	background: #c00025;
+	color: #ffffff;
+	text-decoration: none;
+}
+
+/* Salon-styled dialogs (New Booking, booking summary). */
+.salon-dialog .modal-content {
+	border-radius: 10px;
+	border: 1px solid #e5e5e5;
+}
+.salon-dialog .btn-primary {
+	background: #e4002b;
+	border-color: #e4002b;
+}
+.salon-dialog .btn-primary:hover {
+	background: #c00025;
+	border-color: #c00025;
+}
+.salon-booking-summary .row-line {
+	display: flex;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 8px 0;
+	border-bottom: 1px solid #f0f0f0;
+	font-size: 13px;
+}
+.salon-booking-summary .row-line > span:first-child,
+.salon-booking-summary .services > span {
+	color: #8a8a8a;
+}
+.salon-booking-summary .services {
+	padding: 8px 0;
+	font-size: 13px;
+}
+.salon-booking-summary .services ul {
+	margin: 6px 0 0;
+	padding-left: 18px;
+}
+.salon-booking-summary .notes {
+	margin-top: 8px;
+	padding: 8px 10px;
+	background: #fafafa;
+	border-radius: 6px;
+	font-size: 12px;
+	color: #4a4a4a;
+}
+.salon-booking-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 16px;
+}
+.salon-btn-ghost {
+	background: #ffffff !important;
+	color: #4a4a4a !important;
+	border: 1px solid #e5e5e5 !important;
+}
+.salon-btn-ghost:hover {
+	border-color: #e4002b !important;
+	color: #e4002b !important;
 }
 
 /* ---- shared page chrome for Bookings / Client 360 ---- */
