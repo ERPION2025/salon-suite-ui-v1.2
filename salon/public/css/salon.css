@@ -565,3 +565,199 @@ body.salon-cal-dragging {
 	border-left-color: #1a1a1a;
 	background: #f7f7f7;
 }
+
+/* ============================================================
+   Full-chrome mode — hides every native Desk element (navbar,
+   app switcher, notifications, standard page head/breadcrumbs)
+   so a Salon User sees ONLY our own shell, nothing of stock
+   Frappe anywhere. Applied by salon_common.js adding
+   `salon-full-chrome` to <body> for that role specifically —
+   System Manager accounts never get this class, so normal Desk
+   access for setup/troubleshooting is untouched.
+   ============================================================ */
+body.salon-full-chrome #navbar,
+body.salon-full-chrome .navbar,
+body.salon-full-chrome #body > .page-head,
+body.salon-full-chrome .page-head:not(.salon-main *),
+body.salon-full-chrome .page-breadcrumbs,
+body.salon-full-chrome #body-sidebar,
+body.salon-full-chrome .desk-sidebar,
+body.salon-full-chrome .offline-status-banner {
+	display: none !important;
+}
+/* Our page fills the space the navbar used to occupy. */
+body.salon-full-chrome #body,
+body.salon-full-chrome .content,
+body.salon-full-chrome .main-section {
+	margin-top: 0 !important;
+	padding-top: 0 !important;
+}
+body.salon-full-chrome .salon-shell {
+	min-height: 100vh;
+}
+
+/* ---- shared page chrome for Bookings / Client 360 ---- */
+.salon-pagehead {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 24px;
+}
+.salon-pagehead h1 {
+	font-size: 22px;
+	font-weight: 500;
+	margin: 0 0 4px;
+	color: #1a1a1a;
+}
+.salon-pagehead p {
+	font-size: 13px;
+	color: #8a8a8a;
+	margin: 0;
+}
+.salon-btn {
+	background: #e4002b;
+	color: #fff;
+	border: none;
+	border-radius: 8px;
+	padding: 10px 18px;
+	font-size: 13px;
+	font-weight: 500;
+	cursor: pointer;
+}
+.salon-btn:hover {
+	background: #c40025;
+}
+
+/* ---- client 360 ---- */
+.salon-search {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 24px;
+}
+.salon-search input {
+	flex: 1;
+	border: 1px solid #e0e0e0;
+	border-radius: 8px;
+	padding: 10px 14px;
+	font-size: 13px;
+}
+.salon-search-results {
+	background: #fff;
+	border: 1px solid #eee;
+	border-radius: 10px;
+	margin-bottom: 24px;
+}
+.salon-search-result {
+	padding: 10px 14px;
+	font-size: 13px;
+	border-bottom: 1px solid #f5f5f5;
+	cursor: pointer;
+}
+.salon-search-result:last-child { border-bottom: none; }
+.salon-search-result:hover { background: #fafafa; }
+.salon-profile-header {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+	padding: 32px;
+	background: #fff;
+	border: 1px solid #eee;
+	border-radius: 10px;
+	margin-bottom: 20px;
+}
+.salon-avatar {
+	width: 56px;
+	height: 56px;
+	border-radius: 50%;
+	background: #e4002b;
+	color: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 20px;
+	font-weight: 500;
+	margin-bottom: 12px;
+}
+.salon-profile-header h2 {
+	font-size: 18px;
+	font-weight: 500;
+	margin: 0 0 4px;
+	color: #1a1a1a;
+}
+.salon-profile-header .salon-sub {
+	font-size: 12px;
+	color: #9a9a9a;
+	margin-bottom: 8px;
+}
+.salon-stat-row {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 16px;
+	margin-bottom: 20px;
+}
+.salon-stat-tile {
+	background: #fff;
+	border: 1px solid #eee;
+	border-radius: 10px;
+	padding: 18px;
+	text-align: center;
+}
+.salon-stat-tile .v { font-size: 22px; font-weight: 500; color: #1a1a1a; }
+.salon-stat-tile .l { font-size: 11px; color: #8a8a8a; margin-top: 2px; }
+.salon-prefs {
+	background: #fff;
+	border: 1px solid #eee;
+	border-radius: 10px;
+	padding: 18px;
+	margin-bottom: 20px;
+	font-size: 13px;
+	color: #4a4a4a;
+	line-height: 1.8;
+}
+.salon-prefs b { color: #1a1a1a; }
+.salon-package-card {
+	background: #fdeaee;
+	border: 1px solid #f7c9d2;
+	border-radius: 10px;
+	padding: 16px 18px;
+	margin-bottom: 24px;
+}
+.salon-package-card .tag {
+	font-size: 10px;
+	font-weight: 600;
+	color: #e4002b;
+	text-transform: uppercase;
+	letter-spacing: 0.4px;
+}
+.salon-package-bar {
+	height: 6px;
+	background: #f7c9d2;
+	border-radius: 3px;
+	margin-top: 8px;
+	overflow: hidden;
+}
+.salon-package-bar-fill {
+	height: 100%;
+	background: #e4002b;
+}
+.salon-timeline h2 {
+	font-size: 16px;
+	font-weight: 500;
+	margin-bottom: 12px;
+	color: #1a1a1a;
+}
+.salon-timeline-item {
+	display: flex;
+	gap: 14px;
+	padding: 14px 0;
+	border-bottom: 1px solid #f0f0f0;
+}
+.salon-timeline-date {
+	width: 90px;
+	flex-shrink: 0;
+	font-size: 11px;
+	color: #9a9a9a;
+}
+.salon-timeline-content .t { font-size: 13px; font-weight: 500; color: #1a1a1a; }
+.salon-timeline-content .d { font-size: 12px; color: #8a8a8a; margin-top: 2px; }

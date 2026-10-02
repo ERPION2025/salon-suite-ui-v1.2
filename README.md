@@ -1,7 +1,11 @@
-# Salon Suite
+# Salon Suite UI — version 1.2
 
 A booking, stylist-commission and stock-consumption suite for ERPNext,
 built as an installable Frappe app (module `Salon`, app name `salon`).
+
+Forked from [`ERPION2025/ERPNext-Upgraded-UI-Salon`](https://github.com/ERPION2025/ERPNext-Upgraded-UI-Salon)
+at `main` (full history preserved) — that repo is left untouched; this
+one carries the full-site UI work forward as its own line.
 
 Covers:
 
@@ -19,13 +23,27 @@ Covers:
 - **Salon Service Recipe** / **Recipe Consumable** — raw materials a
   service consumes, for automatic stock deduction.
 - **Package Subscription** — prepaid session packages redeemed by bookings.
-- **Salon Dashboard** (`/app/salon-dashboard`) and **Salon Calendar**
-  (`/app/salon-calendar`) — custom pages with live KPIs (including a
-  store-wise sales breakdown) and a drag-to-reschedule time grid. Every
-  other sidebar link (Bookings, Clients, Packages, Services, Stylists,
-  Stock) points at the native Desk list view for that doctype; POS &
-  Invoicing routes System Managers to the Sales Invoice list and
-  everyone else straight into the POS register.
+- **Four fully custom pages**: **Dashboard** (`/app/salon-dashboard`,
+  live KPIs + store-wise sales breakdown), **Calendar**
+  (`/app/salon-calendar`, drag-to-reschedule grid + Kanban board),
+  **All Bookings** (`/app/salon-bookings`, styled table with
+  draft/submitted invoice status), and **Client 360°**
+  (`/app/salon-client-360`, search + profile + Preferences panel +
+  visit timeline). The remaining sidebar links (Packages, Services,
+  Stylists, Stock) still point at the native Desk list view for that
+  doctype — not yet rebuilt as custom pages; POS & Invoicing routes
+  System Managers to the Sales Invoice list and everyone else straight
+  into the POS register.
+- **Full-chrome mode** — Frappe's own navbar, breadcrumbs, and desk
+  sidebar are hidden site-wide for everyone except System Managers
+  (`salon/public/js/salon_common.js` + the `.salon-full-chrome` rules
+  in `salon.css`), so non-admin users only ever see this app's own
+  shell, not stock Desk chrome. Admin accounts are untouched, so setup
+  and troubleshooting still has normal Desk access underneath.
+- **Client preferences** — `Customer` gained 6 Custom Fields (stylist
+  preference, color formula, allergies, birthday — see
+  `salon/fixtures/custom_field.json`) backing Client 360's Preferences
+  panel.
 - **Store-scoped permissions** (`salon/salon/permissions.py`) — System
   Managers see every branch; everyone else (cashiers, stylists) only
   ever sees their own branch's bookings, both in the custom
@@ -99,9 +117,17 @@ suite matches the rest of your ERPNext instance.
 
 ## Extending
 
-Only the Dashboard is a fully custom page today. Building out another
-section into its own custom page (e.g. a Booking Calendar with
-drag-to-reschedule, or a Client 360 view) follows the same pattern as
-`salon/salon/page/salon_dashboard/salon_dashboard.js` — a Page record +
-a JS file rendering into `page.body` + a whitelisted method in
-`salon/api.py` feeding it data.
+Four screens are fully custom today: Dashboard, Calendar, Bookings,
+Client 360. **Packages, Services, Stylists, and Stock still fall back
+to native Desk list views on purpose** — their sidebar links in
+`salon_common.js` point at `/app/package-subscription`, `/app/item`,
+etc. Deliberately not restricted by role permissions yet, because doing
+that before building their custom-page replacements would lock
+non-admin users out of functionality that currently only exists as
+those native views. Build order: finish the custom page for a screen
+first, *then* tighten its permissions — never the other way round.
+
+Building one out follows the same pattern every page here already
+uses — a Page record + a JS file rendering into `page.body` + a
+whitelisted method in `salon/api.py`, using `salon_common.render_sidebar_html(key)`
+for the sidebar rather than hand-rolling it per page.

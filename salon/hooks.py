@@ -43,7 +43,6 @@ doc_events = {
 
 # Fixtures
 # --------
-# Uncomment and list export fixtures here if you later add custom Salary
-# Components, Roles, etc. that should ship with the app instead of being
-# created manually per site.
-# fixtures = []
+# Client 360's Preferences panel (stylist/color formula/allergies/
+# birthday) reads these straight off the real Customer doctype.
+fixtures = ["Custom Field"]

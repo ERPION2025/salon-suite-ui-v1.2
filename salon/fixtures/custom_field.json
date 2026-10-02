@@ -1,0 +1,51 @@
+[
+ {
+  "doctype": "Custom Field",
+  "dt": "Customer",
+  "fieldname": "custom_salon_preferences_section",
+  "label": "Salon Preferences",
+  "fieldtype": "Section Break",
+  "insert_after": "more_info",
+  "collapsible": 1
+ },
+ {
+  "doctype": "Custom Field",
+  "dt": "Customer",
+  "fieldname": "custom_preferred_stylist",
+  "label": "Preferred Stylist",
+  "fieldtype": "Link",
+  "options": "Salon Stylist",
+  "insert_after": "custom_salon_preferences_section"
+ },
+ {
+  "doctype": "Custom Field",
+  "dt": "Customer",
+  "fieldname": "custom_color_formula",
+  "label": "Color Formula",
+  "fieldtype": "Data",
+  "insert_after": "custom_preferred_stylist"
+ },
+ {
+  "doctype": "Custom Field",
+  "dt": "Customer",
+  "fieldname": "custom_salon_cb_1",
+  "fieldtype": "Column Break",
+  "insert_after": "custom_color_formula"
+ },
+ {
+  "doctype": "Custom Field",
+  "dt": "Customer",
+  "fieldname": "custom_allergies",
+  "label": "Allergies",
+  "fieldtype": "Small Text",
+  "insert_after": "custom_salon_cb_1"
+ },
+ {
+  "doctype": "Custom Field",
+  "dt": "Customer",
+  "fieldname": "custom_birthday",
+  "label": "Birthday",
+  "fieldtype": "Date",
+  "insert_after": "custom_allergies"
+ }
+]

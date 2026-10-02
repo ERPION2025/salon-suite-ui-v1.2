@@ -229,6 +229,140 @@ def reschedule_booking(booking, booking_datetime, salon_stylist=None):
 	}
 
 
+def _attach_stylist_names(rows, key="salon_stylist"):
+	ids = list({r.get(key) for r in rows if r.get(key)})
+	names = {}
+	if ids:
+		names = dict(
+			frappe.get_all(
+				"Salon Stylist", filters={"name": ["in", ids]}, fields=["name", "stylist_name"], as_list=True
+			)
+		)
+	for r in rows:
+		r[f"{key}_name"] = names.get(r.get(key), r.get(key))
+	return rows
+
+
+def _attach_services_label(rows):
+	for r in rows:
+		r["services_label"] = ", ".join(
+			frappe.get_all("Booking Service", filters={"parent": r.name}, pluck="item")
+		)
+	return rows
+
+
+@frappe.whitelist()
+def get_all_bookings(cost_center=None, limit=50):
+	cost_center = resolve_cost_center_filter(cost_center)
+
+	filters = {}
+	if cost_center:
+		filters["cost_center"] = cost_center
+
+	rows = frappe.get_all(
+		"Salon Booking",
+		filters=filters,
+		fields=[
+			"name", "booking_datetime", "cost_center", "customer", "salon_stylist",
+			"status", "sales_invoice", "stock_entry", "total_amount",
+		],
+		order_by="booking_datetime desc",
+		limit_page_length=limit,
+	)
+	_attach_stylist_names(rows)
+	_attach_services_label(rows)
+
+	# Invoice is created as a DRAFT at booking-completion time (see
+	# Salon Booking.create_draft_invoice()) and only becomes real revenue
+	# once a cashier submits it in POS - surface that distinction rather
+	# than just "has an invoice or not".
+	invoice_names = [r.sales_invoice for r in rows if r.sales_invoice]
+	invoice_status = {}
+	if invoice_names:
+		invoice_status = dict(
+			frappe.get_all(
+				"Sales Invoice", filters={"name": ["in", invoice_names]}, fields=["name", "docstatus"], as_list=True
+			)
+		)
+	for r in rows:
+		r["invoice_docstatus"] = invoice_status.get(r.sales_invoice) if r.sales_invoice else None
+
+	return rows
+
+
+@frappe.whitelist()
+def search_clients(txt=""):
+	return frappe.get_all(
+		"Customer",
+		filters=[["customer_name", "like", f"%{txt}%"]] if txt else None,
+		fields=["name", "customer_name", "mobile_no"],
+		limit_page_length=10,
+	)
+
+
+@frappe.whitelist()
+def get_client_360(customer):
+	cust = frappe.get_doc("Customer", customer)
+
+	visits = frappe.get_all(
+		"Salon Booking",
+		filters={"customer": customer, "status": "Completed"},
+		fields=["name", "booking_datetime", "salon_stylist", "total_amount", "sales_invoice"],
+		order_by="booking_datetime desc",
+		limit_page_length=20,
+	)
+	_attach_stylist_names(visits)
+	_attach_services_label(visits)
+
+	# LTV reflects actual realised revenue - submitted Sales Invoices only
+	# - consistent with how get_dashboard_kpis treats revenue. A Completed
+	# booking nobody's billed yet at the POS doesn't count here either.
+	ltv = frappe.db.sql(
+		"""select coalesce(sum(grand_total), 0) from `tabSales Invoice`
+		where customer = %(customer)s and docstatus = 1""",
+		{"customer": customer},
+	)[0][0]
+
+	loyalty_points = 0
+	if frappe.db.exists("DocType", "Loyalty Point Entry"):
+		loyalty_points = frappe.db.sql(
+			"""select coalesce(sum(loyalty_points), 0) from `tabLoyalty Point Entry`
+			where customer = %(customer)s""",
+			{"customer": customer},
+		)[0][0]
+
+	package = frappe.get_all(
+		"Package Subscription",
+		filters={"customer": customer, "status": "Active"},
+		fields=["name", "package_item", "sessions_total", "sessions_used", "sessions_remaining", "expiry_date"],
+		limit_page_length=1,
+	)
+
+	preferred_stylist_name = None
+	if cust.get("custom_preferred_stylist"):
+		preferred_stylist_name = frappe.db.get_value(
+			"Salon Stylist", cust.custom_preferred_stylist, "stylist_name"
+		)
+
+	return {
+		"customer": {
+			"name": cust.name,
+			"customer_name": cust.customer_name,
+			"mobile_no": getattr(cust, "mobile_no", None),
+			"territory": getattr(cust, "territory", None),
+		},
+		"preferences": {
+			"preferred_stylist_name": preferred_stylist_name,
+			"color_formula": cust.get("custom_color_formula"),
+			"allergies": cust.get("custom_allergies"),
+			"birthday": cust.get("custom_birthday"),
+		},
+		"stats": {"visits": len(visits), "ltv": ltv, "loyalty_points": loyalty_points},
+		"active_package": package[0] if package else None,
+		"visits": visits,
+	}
+
+
 @frappe.whitelist()
 def create_quick_booking(customer, salon_stylist, booking_datetime, item, cost_center=None):
 	scope = get_user_scope()

@@ -5,8 +5,8 @@ window.salon_common = {
 			items: [
 				{ key: 'dashboard', label: 'Dashboard', href: '/app/salon-dashboard' },
 				{ key: 'calendar', label: 'Calendar', href: '/app/salon-calendar' },
-				{ key: 'bookings', label: 'Bookings', href: '/app/salon-booking' },
-				{ key: 'clients', label: 'Clients (CRM)', href: '/app/customer' },
+				{ key: 'bookings', label: 'Bookings', href: '/app/salon-bookings' },
+				{ key: 'clients', label: 'Clients (CRM)', href: '/app/salon-client-360' },
 			],
 		},
 		{
@@ -78,3 +78,15 @@ window.salon_common = {
 		`;
 	},
 };
+
+// Full-chrome mode: hide Frappe's own navbar/sidebar/breadcrumbs for
+// everyone except System Managers, site-wide — not just on our custom
+// pages. This file is already loaded on every Desk page via
+// app_include_js, so this runs everywhere automatically. Mirrors the
+// same admin/non-admin split salon/salon/permissions.py already uses
+// for row-level scoping, rather than introducing a second, separate
+// "is this a salon user" concept.
+frappe.ready(() => {
+	const is_admin = frappe.user.has_role('System Manager');
+	document.body.classList.toggle('salon-full-chrome', !is_admin);
+});
