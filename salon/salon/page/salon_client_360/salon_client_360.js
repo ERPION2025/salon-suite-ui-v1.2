@@ -69,6 +69,7 @@ class SalonClient360 {
 	}
 
 	load_client(customer) {
+		this.customer = customer;
 		frappe.call('salon.api.get_client_360', { customer }).then((r) => {
 			this.render_profile(r.message);
 		});
@@ -85,6 +86,7 @@ class SalonClient360 {
 				<div class="salon-avatar">${initials}</div>
 				<h2>${frappe.utils.escape_html(c.customer_name)}</h2>
 				<div class="salon-sub">${frappe.utils.escape_html(c.mobile_no || '')}${c.territory ? ' &middot; ' + frappe.utils.escape_html(c.territory) : ''}</div>
+				<button class="salon-btn salon-profile-action" id="salon-add-subscription">+ ${__('Add Subscription')}</button>
 			</div>
 			<div class="salon-stat-row">
 				<div class="salon-stat-tile"><div class="v">${d.stats.visits}</div><div class="l">VISITS</div></div>
@@ -117,6 +119,8 @@ class SalonClient360 {
 			`;
 		}
 
+		html += this.render_subscriptions(d.subscriptions || []);
+
 		html += `<div class="salon-timeline"><h2>Visit Timeline</h2>`;
 		if (!d.visits.length) {
 			html += `<p style="color:#9a9a9a; font-size:13px">No completed visits yet.</p>`;
@@ -138,5 +142,167 @@ class SalonClient360 {
 		html += `</div>`;
 
 		document.getElementById('salon-client-profile').innerHTML = html;
+		document
+			.getElementById('salon-add-subscription')
+			.addEventListener('click', () => this.open_add_subscription(c.name, c.customer_name));
+	}
+
+	render_subscriptions(subs) {
+		const esc = frappe.utils.escape_html;
+		const status_cls = {
+			Active: 'salon-status-confirmed',
+			'Pending Payment': 'salon-status-checked-in',
+			Completed: 'salon-status-completed',
+			Expired: 'salon-status-no-show',
+		};
+		const rows = subs.length
+			? subs
+					.map(
+						(s) => `
+				<tr>
+					<td>${esc(s.name)}</td>
+					<td>${esc(s.package_name || s.package_item || '')}</td>
+					<td>${esc(s.cost_center || '—')}</td>
+					<td>${s.sessions_remaining} ${__('of')} ${s.sessions_total} ${__('left')}</td>
+					<td><span class="salon-status ${status_cls[s.status] || ''}">${esc(__(s.status || ''))}</span></td>
+					<td>${s.start_date ? frappe.datetime.str_to_user(s.start_date) : '&mdash;'}</td>
+					<td>${s.expiry_date ? frappe.datetime.str_to_user(s.expiry_date) : '&mdash;'}</td>
+					<td>${s.sales_invoice ? salon_common.doc_link('sales-invoice', s.sales_invoice) : '&mdash;'}</td>
+				</tr>`
+					)
+					.join('')
+			: `<tr><td colspan="8">${__('No subscriptions yet.')}</td></tr>`;
+		return `
+			<div class="salon-client-subs">
+				<h2>${__('Subscriptions')}</h2>
+				<table class="salon-table">
+					<thead><tr>
+						<th>${__('Sub ID')}</th><th>${__('Package')}</th><th>${__('Branch')}</th><th>${__('Sessions')}</th>
+						<th>${__('Status')}</th><th>${__('Started')}</th><th>${__('Expires')}</th><th>${__('Invoice')}</th>
+					</tr></thead>
+					<tbody>${rows}</tbody>
+				</table>
+			</div>`;
+	}
+
+	// Sell a package to this client: a draft POS invoice goes to the
+	// branch register; the subscription turns Active once it's paid there.
+	open_add_subscription(customer, customer_name) {
+		frappe.call('salon.api.get_subscription_options').then((r) => {
+			const opts = r.message || { packages: [], branches: [] };
+			if (!opts.packages.length) {
+				frappe.msgprint(__('No packages yet. Add Items under the "Packages" Item Group first.'));
+				return;
+			}
+			if (!opts.branches.length) {
+				frappe.msgprint(__('You are not assigned to a branch yet.'));
+				return;
+			}
+			const by_code = {};
+			opts.packages.forEach((p) => (by_code[p.name] = p));
+			const pkg_options = opts.packages.map((p) => ({
+				value: p.name,
+				label: `${p.item_name} — ${format_currency(p.rate)}`,
+			}));
+			const first = opts.packages[0];
+
+			let d = null;
+			const update_summary = () => {
+				if (!d) return;
+				const p = by_code[d.get_value('package_item')] || first;
+				if (!d.get_value('sessions_total') && p.custom_package_sessions) {
+					d.set_value('sessions_total', p.custom_package_sessions);
+				}
+				d.fields_dict.summary.$wrapper.html(`
+					<div class="salon-sub-summary">
+						<div><span>${__('Client')}</span><b>${frappe.utils.escape_html(customer_name)}</b></div>
+						<div><span>${__('Price')}</span><b>${format_currency(p.rate)}</b></div>
+						<div><span>${__('Validity')}</span><b>${
+							p.custom_package_validity_days ? __('{0} days from payment', [p.custom_package_validity_days]) : __('No expiry')
+						}</b></div>
+						<p>${__('A draft bill goes to the POS register. The package becomes Active as soon as the cashier takes payment.')}</p>
+					</div>`);
+			};
+			d = new frappe.ui.Dialog({
+				title: __('Add Subscription'),
+				fields: [
+					{
+						fieldname: 'package_item',
+						label: __('Package'),
+						fieldtype: 'Select',
+						options: pkg_options,
+						default: first.name,
+						reqd: 1,
+						onchange: () => {
+							if (!d) return;
+							const p = by_code[d.get_value('package_item')];
+							d.set_value('sessions_total', (p && p.custom_package_sessions) || 0);
+							update_summary();
+						},
+					},
+					{
+						fieldname: 'sessions_total',
+						label: __('Sessions included'),
+						fieldtype: 'Int',
+						default: first.custom_package_sessions || 0,
+						reqd: 1,
+					},
+					{
+						fieldname: 'cost_center',
+						label: __('Sold at branch'),
+						fieldtype: 'Select',
+						options: opts.branches.map((b) => b.name).join('\n'),
+						default: opts.branches[0].name,
+						reqd: 1,
+						read_only: opts.is_admin ? 0 : 1,
+					},
+					{ fieldname: 'summary', fieldtype: 'HTML' },
+				],
+				primary_action_label: __('Send to POS'),
+				primary_action: (values) => {
+					frappe
+						.call({
+							method: 'salon.api.create_subscription',
+							args: {
+								customer,
+								package_item: values.package_item,
+								sessions_total: values.sessions_total,
+								cost_center: values.cost_center,
+							},
+							freeze: true,
+						})
+						.then((res) => {
+							d.hide();
+							this.load_client(customer);
+							const m = res.message || {};
+							const done = new frappe.ui.Dialog({
+								title: __('Sent to POS'),
+								fields: [
+									{
+										fieldname: 'msg',
+										fieldtype: 'HTML',
+										options: `<p>${__(
+											'Subscription {0} is waiting for payment. Draft bill {1} is in the {2} register under Draft orders.',
+											[m.subscription, m.sales_invoice, m.pos_profile]
+										)}</p>`,
+									},
+								],
+								primary_action_label: __('Take payment now'),
+								primary_action: () => {
+									done.hide();
+									frappe.set_route('point-of-sale');
+								},
+								secondary_action_label: __('Later'),
+								secondary_action: () => done.hide(),
+							});
+							done.$wrapper.addClass('salon-dialog');
+							done.show();
+						});
+				},
+			});
+			d.$wrapper.addClass('salon-dialog');
+			d.show();
+			update_summary();
+		});
 	}
 }

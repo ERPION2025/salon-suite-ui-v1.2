@@ -1,0 +1,12 @@
+{
+ "doctype": "Page",
+ "name": "salon-pos-profiles",
+ "module": "Salon",
+ "title": "POS Profiles",
+ "page_name": "salon-pos-profiles",
+ "standard": "Yes",
+ "roles": [
+  {"role": "Salon Manager"},
+  {"role": "System Manager"}
+ ]
+}

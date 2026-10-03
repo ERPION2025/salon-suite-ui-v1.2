@@ -53,5 +53,38 @@
   "label": "Birthday",
   "fieldtype": "Date",
   "insert_after": "custom_allergies"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item-custom_package_sessions",
+  "dt": "Item",
+  "fieldname": "custom_package_sessions",
+  "label": "Package Sessions",
+  "fieldtype": "Int",
+  "insert_after": "item_group",
+  "depends_on": "eval:doc.item_group=='Packages'",
+  "description": "Sessions included when this package is sold (Salon Suite)"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item-custom_package_validity_days",
+  "dt": "Item",
+  "fieldname": "custom_package_validity_days",
+  "label": "Package Validity (Days)",
+  "fieldtype": "Int",
+  "insert_after": "custom_package_sessions",
+  "depends_on": "eval:doc.item_group=='Packages'",
+  "description": "Days from activation until the package expires; blank = no expiry"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Purchase Invoice-custom_salon_purchase_category",
+  "dt": "Purchase Invoice",
+  "fieldname": "custom_salon_purchase_category",
+  "label": "Salon Purchase Category",
+  "fieldtype": "Select",
+  "options": "\nConsumables\nRetail Products\nOverheads & Bills\nEquipment\nAssets",
+  "insert_after": "supplier",
+  "in_standard_filter": 1
  }
 ]

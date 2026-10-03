@@ -12,7 +12,12 @@ const SALON_PAGES = [
 	'salon-payroll',
 	'salon-gl',
 	'salon-pnl',
+	'salon-purchases',
+	'salon-pos-profiles',
 ];
+
+// Screens only Salon Manager (and System Manager) may open.
+const SALON_MANAGER_PAGES = ['salon-pos-profiles'];
 
 // The only places a Salon User (without System Manager) may go. Anything
 // else under /app - doctype lists/forms, reports, workspaces, settings -
@@ -48,12 +53,21 @@ window.salon_common = {
 					// Invoice list, for any role, for now.
 					href: '/app/point-of-sale',
 				},
+				{
+					key: 'pos-profiles',
+					label: 'POS Profiles',
+					href: '/app/salon-pos-profiles',
+					roles: ['Salon Manager', 'System Manager'],
+				},
 				{ key: 'gl', label: 'GL Postings', href: '/app/salon-gl' },
 			],
 		},
 		{
 			title: 'Inventory — ERPNext',
-			items: [{ key: 'stock', label: 'Stock & Consumables', href: '/app/salon-stock' }],
+			items: [
+				{ key: 'stock', label: 'Stock & Consumables', href: '/app/salon-stock' },
+				{ key: 'purchases', label: 'Purchases', href: '/app/salon-purchases' },
+			],
 		},
 		{
 			title: 'HR & Payroll — ERPNext',
@@ -68,22 +82,36 @@ window.salon_common = {
 		},
 	],
 
-	// Salon User without System Manager: locked into the salon screens.
+	// Salon User / Salon Manager without System Manager: locked into the
+	// salon screens.
 	is_salon_only() {
 		const roles = frappe.user_roles || [];
-		return roles.includes('Salon User') && !roles.includes('System Manager');
+		const salon = roles.includes('Salon User') || roles.includes('Salon Manager');
+		return salon && !roles.includes('System Manager');
+	},
+
+	is_manager() {
+		const roles = frappe.user_roles || [];
+		return roles.includes('Salon Manager') || roles.includes('System Manager');
+	},
+
+	can_open_page(page) {
+		if (SALON_MANAGER_PAGES.includes(page)) return this.is_manager();
+		return SALON_USER_ALLOWED_ROUTES.includes(page);
 	},
 
 	render_sidebar_html(active_key) {
 		const groups = this.nav_groups
 			.map((group) => {
 				const links = group.items
+					.filter((item) => !item.roles || item.roles.some((r) => (frappe.user_roles || []).includes(r)))
 					.map((item) => {
 						const cls = item.key === active_key ? 'active' : '';
 						const href = typeof item.href === 'function' ? item.href() : item.href;
 						return `<a class="${cls}" href="${href}">${item.label}</a>`;
 					})
 					.join('');
+				if (!links) return '';
 				return `
 					<div class="salon-nav-group">
 						<div class="salon-nav-group-title">${group.title}</div>
@@ -296,7 +324,7 @@ $(() => {
 		document.body.classList.toggle('salon-on-pos', page === 'point-of-sale');
 
 		if (salon_only) {
-			if (SALON_USER_ALLOWED_ROUTES.includes(page)) {
+			if (salon_common.can_open_page(page)) {
 				document.body.classList.add('salon-route-ok');
 			} else {
 				document.body.classList.remove('salon-route-ok');
@@ -323,7 +351,7 @@ $(() => {
 		const href = e.currentTarget.getAttribute('href') || '';
 		const parts = href.replace(/^\/app\//, '').split(/[/?#]/);
 		const page = decodeURIComponent(parts[0] || '').toLowerCase();
-		if (SALON_USER_ALLOWED_ROUTES.includes(page)) return;
+		if (salon_common.can_open_page(page)) return;
 		e.preventDefault();
 		e.stopImmediatePropagation();
 		if (page === 'salon-booking' && parts[1]) {

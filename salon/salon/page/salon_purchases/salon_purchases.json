@@ -1,0 +1,8 @@
+{
+ "doctype": "Page",
+ "name": "salon-purchases",
+ "module": "Salon",
+ "title": "Purchases",
+ "page_name": "salon-purchases",
+ "standard": "Yes"
+}
