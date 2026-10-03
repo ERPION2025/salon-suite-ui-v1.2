@@ -45,7 +45,7 @@ Covers:
   list.
 - **`Salon User` role** (`salon/setup.py`, run via `after_migrate` —
   not a hand-written fixture, since `Custom DocPerm` autonames via an
-  unpredictable hash) — grants exactly the doctype access the 12 pages
+  unpredictable hash) — grants exactly the doctype access the salon pages
   need (Customer, Item, Sales Invoice incl. submit, Stock Entry, Bin,
   GL Entry, Loyalty Program, Attendance, POS Profile/Opening/Closing
   Entry, Cost Center, Warehouse) and nothing else. Its own `home_page`
@@ -61,7 +61,7 @@ Covers:
   (`salon/public/js/salon_common.js` toggles `body.salon-page`;
   rules in `salon.css`.)
 - **Salon User lock-down** — an account with `Salon User` and *without*
-  `System Manager` (`body.salon-locked`) can only reach the 12 salon
+  `System Manager` (`body.salon-locked`) can only reach the salon
   screens and the POS register; any other `/app` route (lists, forms,
   reports, workspaces, settings) bounces back to the Salon Dashboard.
   Native document links on salon screens render as plain text for them,
@@ -70,6 +70,40 @@ Covers:
   have no permission for are hidden. On the POS register they get a
   "← Salon Suite" pill to return. System Manager keeps normal Desk
   everywhere outside the salon screens.
+- **Salon Manager role** — everything Salon User has (same locked,
+  full-screen suite and branch scope), plus the **POS Profiles** screen
+  to create/edit their branch's register (store room, payment methods,
+  default method, cashiers, walk-in customer, price list, price/discount
+  switches). The page is restricted by page roles (Salon Manager, System
+  Manager), hidden from Salon User's sidebar, and every save is checked
+  server-side (`salon/pos_profiles.py`). Branch scope for staff who are
+  neither stylists nor POS cashiers falls back to their Employee
+  *Payroll Cost Center*.
+- **Purchases** (`/app/salon-purchases`, `salon/purchases.py`) — one
+  simple screen over native Purchase Invoices, tagged with
+  `custom_salon_purchase_category`, always against the branch Cost
+  Center so they show up in P&L by Branch:
+  Consumables / Retail Products are stock (Stock In Hand, expensed when
+  used on a service / sold); Overheads & Bills and Equipment hit the
+  chosen Expense account immediately; Assets go to the chosen Fixed
+  Asset account (balance sheet; depreciation not automated). "Paid now"
+  posts the payment in the same bill; "On credit" leaves it payable and
+  **Mark paid** creates the Payment Entry later. New supplier names are
+  created on the fly. Note: if Buying Settings require a Purchase Order /
+  Receipt before an invoice, turn that off for these bills to post.
+- **Subscriptions from Client 360** — "+ Add Subscription" sells a
+  package to the open client: a draft POS invoice goes to the branch
+  register and the Package Subscription sits as *Pending Payment*; the
+  cashier submitting that invoice makes it *Active* (start date = payment
+  date, expiry from the Item's *Package Validity (Days)*). Client 360
+  lists all of the client's subscriptions. Package Items get two fields:
+  *Package Sessions* and *Package Validity (Days)*.
+- **Permission repair** — older builds inserted bare Custom DocPerms for
+  Salon User, which made Frappe ignore the *standard* permissions of
+  those doctypes for every other role (Item, Stock Entry, POS Profile,
+  Bin, GL Entry, ...). `after_migrate` now copies the missing standard
+  rows back for doctypes that only had salon/System Manager custom rows,
+  and new grants call `setup_custom_perms` first.
 - **Client preferences** — `Customer` gained 6 Custom Fields (stylist
   preference, color formula, allergies, birthday — see
   `salon/fixtures/custom_field.json`) backing Client 360's Preferences

@@ -70,6 +70,37 @@ class SalonPnl {
 					<tr class="salon-pnl-total-row"><td>Total Expenses</td><td style="text-align:right">${format_currency(d.total_expense)}</td></tr>
 				</tbody>
 			</table>
+			${this.render_purchases(d.purchases || [])}
+		`;
+	}
+
+	// How this period's Purchases reach the P&L above.
+	render_purchases(purchases) {
+		const how = {
+			'Overheads & Bills': __('In Expenses now'),
+			Equipment: __('In Expenses now'),
+			Consumables: __('In Expenses when used on a service'),
+			'Retail Products': __('In Expenses (cost of goods) when sold'),
+			Assets: __('Balance sheet — not in P&L'),
+		};
+		const rows = purchases.length
+			? purchases
+					.map(
+						(p) => `<tr>
+							<td>${frappe.utils.escape_html(__(p.category))}</td>
+							<td>${p.bills}</td>
+							<td class="salon-muted">${how[p.category] || ''}</td>
+							<td style="text-align:right">${format_currency(p.amount || 0)}</td>
+						</tr>`
+					)
+					.join('')
+			: `<tr><td colspan="4">${__('No purchases recorded this period.')}</td></tr>`;
+		return `
+			<div class="salon-pnl-section-title">${__('Purchases this period')}</div>
+			<table class="salon-table">
+				<thead><tr><th>${__('Category')}</th><th>${__('Bills')}</th><th>${__('How it shows in P&L')}</th><th style="text-align:right">${__('Amount')}</th></tr></thead>
+				<tbody>${rows}</tbody>
+			</table>
 		`;
 	}
 }

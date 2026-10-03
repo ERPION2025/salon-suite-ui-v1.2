@@ -123,6 +123,10 @@ class SalonBooking(Document):
 
 	def redeem_package(self):
 		sub = frappe.get_doc("Package Subscription", self.package_subscription)
+		if sub.status != "Active":
+			frappe.throw(
+				_("{0} is {1} - only Active packages can be redeemed").format(sub.name, sub.status)
+			)
 		if flt(sub.sessions_remaining) <= 0:
 			frappe.throw(_("No sessions remaining on {0}").format(sub.name))
 		sub.sessions_used = flt(sub.sessions_used) + 1

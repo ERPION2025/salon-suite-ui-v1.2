@@ -1,10 +1,11 @@
 import frappe
 from frappe import _
-from frappe.utils import flt, get_datetime, today
+from frappe.utils import cint, flt, get_datetime, getdate, today
 
 from salon.salon.permissions import (
 	check_cost_center_access,
 	get_user_scope,
+	require_salon_role,
 	resolve_cost_center_filter,
 )
 
@@ -338,6 +339,19 @@ def get_client_360(customer):
 		limit_page_length=1,
 	)
 
+	subscriptions = frappe.get_all(
+		"Package Subscription",
+		filters={"customer": customer},
+		fields=[
+			"name", "package_item", "cost_center", "status", "sessions_total", "sessions_used",
+			"sessions_remaining", "start_date", "expiry_date", "sales_invoice", "creation",
+		],
+		order_by="creation desc",
+		limit_page_length=50,
+	)
+	for sub in subscriptions:
+		sub["package_name"] = frappe.db.get_value("Item", sub.package_item, "item_name") or sub.package_item
+
 	preferred_stylist_name = None
 	if cust.get("custom_preferred_stylist"):
 		preferred_stylist_name = frappe.db.get_value(
@@ -359,8 +373,97 @@ def get_client_360(customer):
 		},
 		"stats": {"visits": len(visits), "ltv": ltv, "loyalty_points": loyalty_points},
 		"active_package": package[0] if package else None,
+		"subscriptions": subscriptions,
 		"visits": visits,
 	}
+
+
+# ---------------------------------------------------------------------------
+# Branch picker shared by the salon dialogs (subscriptions, purchases, POS
+# Profiles). Admins pick any branch; everyone else is fixed to their own.
+# ---------------------------------------------------------------------------
+@frappe.whitelist()
+def get_branch_options():
+	require_salon_role()
+	scope = get_user_scope()
+	filters = {"is_group": 0, "disabled": 0}
+	if not scope["is_admin"]:
+		filters["name"] = scope["cost_center"]
+	branches = frappe.get_all(
+		"Cost Center", filters=filters, fields=["name", "cost_center_name", "company"], order_by="name asc"
+	)
+	return {"is_admin": scope["is_admin"], "branches": branches}
+
+
+# ---------------------------------------------------------------------------
+# Package subscriptions sold from Client 360 - billed through the branch's
+# POS register exactly like a completed booking: a draft POS invoice is
+# handed off, and the subscription only turns Active once a cashier
+# submits that invoice (salon/salon/events.py).
+# ---------------------------------------------------------------------------
+@frappe.whitelist()
+def get_subscription_options():
+	require_salon_role()
+	packages = frappe.get_all(
+		"Item",
+		filters={"item_group": "Packages", "disabled": 0},
+		fields=["name", "item_name", "custom_package_sessions", "custom_package_validity_days"],
+		order_by="item_name asc",
+	)
+	for p in packages:
+		p["rate"] = (
+			frappe.db.get_value("Item Price", {"item_code": p.name, "selling": 1}, "price_list_rate") or 0
+		)
+	branch_info = get_branch_options()
+	return {"packages": packages, **branch_info}
+
+
+@frappe.whitelist()
+def create_subscription(customer, package_item, sessions_total=None, cost_center=None, start_date=None):
+	require_salon_role()
+	scope = get_user_scope()
+	if scope["is_admin"]:
+		if not cost_center:
+			frappe.throw(_("Pick the branch this subscription is sold at"))
+	else:
+		cost_center = scope["cost_center"]
+	check_cost_center_access(cost_center)
+
+	if not frappe.db.exists("Customer", customer):
+		frappe.throw(_("Client {0} not found").format(customer))
+	item = frappe.db.get_value(
+		"Item",
+		package_item,
+		["name", "item_group", "disabled", "custom_package_sessions"],
+		as_dict=True,
+	)
+	if not item or item.disabled or item.item_group != "Packages":
+		frappe.throw(_("{0} is not an active package").format(package_item))
+
+	sessions_total = cint(sessions_total) or cint(item.custom_package_sessions)
+	if sessions_total <= 0:
+		frappe.throw(_("Enter how many sessions this package includes"))
+
+	rate = frappe.db.get_value("Item Price", {"item_code": package_item, "selling": 1}, "price_list_rate") or 0
+
+	from salon.salon.billing import make_draft_pos_invoice
+
+	sales_invoice, pos_profile = make_draft_pos_invoice(
+		customer, cost_center, [{"item_code": package_item, "qty": 1, "rate": rate}]
+	)
+
+	sub = frappe.new_doc("Package Subscription")
+	sub.customer = customer
+	sub.package_item = package_item
+	sub.cost_center = cost_center
+	sub.sessions_total = sessions_total
+	sub.sessions_used = 0
+	sub.start_date = getdate(start_date) if start_date else None
+	sub.status = "Pending Payment"
+	sub.sales_invoice = sales_invoice
+	sub.insert(ignore_permissions=True)
+
+	return {"subscription": sub.name, "sales_invoice": sales_invoice, "pos_profile": pos_profile}
 
 
 @frappe.whitelist()
@@ -592,6 +695,30 @@ def get_pnl_data(cost_center=None):
 	total_revenue = sum(flt(r.net) for r in revenue)
 	total_expense = sum(flt(-r.net) for r in expense)
 
+	# Purchases recorded on the Purchases screen this period, by category,
+	# so the P&L page can show how each kind reaches (or doesn't reach) the
+	# expense lines above. Informational only - the P&L itself is GL.
+	purchases = []
+	if frappe.db.has_column("Purchase Invoice", "custom_salon_purchase_category"):
+		pi_conditions = [
+			"docstatus = 1",
+			"posting_date between %(start)s and %(end)s",
+			"ifnull(custom_salon_purchase_category, '') != ''",
+		]
+		if cost_center:
+			pi_conditions.append("cost_center = %(cost_center)s")
+		purchases = frappe.db.sql(
+			f"""
+			select custom_salon_purchase_category as category, count(*) as bills,
+				sum(if(base_rounded_total, base_rounded_total, base_grand_total)) as amount
+			from `tabPurchase Invoice`
+			where {' and '.join(pi_conditions)}
+			group by custom_salon_purchase_category
+			""",
+			values,
+			as_dict=True,
+		)
+
 	return {
 		"revenue": revenue,
 		"expense": expense,
@@ -600,6 +727,7 @@ def get_pnl_data(cost_center=None):
 		"net_profit": total_revenue - total_expense,
 		"month_start": month_start,
 		"month_end": month_end,
+		"purchases": purchases,
 	}
 
 

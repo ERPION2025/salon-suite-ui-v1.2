@@ -1,8 +1,31 @@
 import frappe
-from frappe.utils import flt, nowdate
+from frappe.utils import add_days, cint, flt, nowdate
 
 
 def on_sales_invoice_submit(doc, method=None):
+	activate_package_subscriptions(doc)
+	book_stylist_commission(doc)
+
+
+def activate_package_subscriptions(doc):
+	"""A package sold from Client 360 sits as "Pending Payment" until the
+	cashier submits its draft POS invoice; that submit activates it."""
+	subs = frappe.get_all(
+		"Package Subscription",
+		filters={"sales_invoice": doc.name, "status": "Pending Payment"},
+		fields=["name", "package_item", "start_date"],
+	)
+	for s in subs:
+		sub = frappe.get_doc("Package Subscription", s.name)
+		sub.status = "Active"
+		sub.start_date = sub.start_date or doc.posting_date or nowdate()
+		validity = cint(frappe.db.get_value("Item", sub.package_item, "custom_package_validity_days"))
+		if validity and not sub.expiry_date:
+			sub.expiry_date = add_days(sub.start_date, validity)
+		sub.save(ignore_permissions=True)
+
+
+def book_stylist_commission(doc):
 	"""Revenue and stylist commission only land once a cashier actually
 	submits the POS invoice a completed booking was handed off to -
 	not when the booking itself is marked Completed. See

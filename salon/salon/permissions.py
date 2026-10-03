@@ -3,15 +3,31 @@ from frappe import _
 
 NO_ACCESS_COST_CENTER = "__no_store_assigned__"
 
+SALON_USER = "Salon User"
+SALON_MANAGER = "Salon Manager"
+SALON_ROLES = (SALON_USER, SALON_MANAGER, "System Manager")
+MANAGER_ROLES = (SALON_MANAGER, "System Manager")
+
+
+def require_salon_role():
+	"""Whitelisted salon APIs that write with ignore_permissions must only
+	be callable by salon staff (or System Manager)."""
+	frappe.only_for(SALON_ROLES)
+
+
+def require_manager_role():
+	frappe.only_for(MANAGER_ROLES)
+
 
 def get_user_scope(user=None):
 	"""Resolve which Cost Center (store/branch) a user is confined to.
 
 	System Managers see everything (cost_center=None, is_admin=True).
 	Everyone else is scoped to the Cost Center on their assigned POS
-	Profile, falling back to their Salon Stylist record. Users with
-	neither get a cost_center that matches no real record, so they see
-	nothing rather than everything (fail closed).
+	Profile, falling back to their Salon Stylist record, then their
+	Employee's Payroll Cost Center. Users with none of these get a
+	cost_center that matches no real record, so they see nothing
+	rather than everything (fail closed).
 	"""
 	user = user or frappe.session.user
 
@@ -31,9 +47,13 @@ def get_user_scope(user=None):
 		cost_center = frappe.db.get_value("POS Profile", pos_profile[0].pos_profile, "cost_center")
 
 	if not cost_center:
-		employee = frappe.db.get_value("Employee", {"user_id": user}, "name")
+		employee = frappe.db.get_value("Employee", {"user_id": user}, ["name", "payroll_cost_center"], as_dict=True)
 		if employee:
-			cost_center = frappe.db.get_value("Salon Stylist", employee, "cost_center")
+			cost_center = frappe.db.get_value("Salon Stylist", employee.name, "cost_center")
+			# Branch managers / front-desk staff who are employees but not
+			# stylists: fall back to the Employee's own Payroll Cost Center.
+			if not cost_center:
+				cost_center = employee.get("payroll_cost_center")
 
 	return {"is_admin": False, "cost_center": cost_center or NO_ACCESS_COST_CENTER}
 
