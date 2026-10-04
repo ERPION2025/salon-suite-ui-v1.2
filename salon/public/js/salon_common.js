@@ -14,6 +14,8 @@ const SALON_PAGES = [
 	'salon-pnl',
 	'salon-purchases',
 	'salon-pos-profiles',
+	'salon-attendance',
+	'salon-leave',
 ];
 
 // Screens only Salon Manager (and System Manager) may open.
@@ -73,6 +75,8 @@ window.salon_common = {
 			title: 'HR & Payroll — ERPNext',
 			items: [
 				{ key: 'stylists', label: 'Stylists / Employees', href: '/app/salon-stylists' },
+				{ key: 'attendance', label: 'Attendance', href: '/app/salon-attendance' },
+				{ key: 'leave', label: 'Leave', href: '/app/salon-leave' },
 				{ key: 'payroll', label: 'Payroll & Commissions', href: '/app/salon-payroll' },
 			],
 		},

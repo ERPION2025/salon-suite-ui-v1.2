@@ -612,20 +612,35 @@ def get_stock_data(cost_center=None):
 	)
 	stock = [s for s in stock if flt(s.actual_qty) or flt(s.reserved_qty)]
 
-	entry_filters = {"stock_entry_type": "Material Issue"}
+	# Recent entries of every type (booking consumption, transfers,
+	# receipts, issues). Branch staff only see entries touching their
+	# branch's store room(s). (Stock Entry has no header cost_center.)
+	entry_filters = {"docstatus": 1}
 	if cost_center:
-		entry_filters["cost_center"] = cost_center
+		branch_warehouses = frappe.get_all("POS Profile", filters={"cost_center": cost_center}, pluck="warehouse")
+		parents = set(
+			frappe.get_all(
+				"Stock Entry Detail", filters={"s_warehouse": ["in", branch_warehouses or [""]]}, pluck="parent"
+			)
+		) | set(
+			frappe.get_all(
+				"Stock Entry Detail", filters={"t_warehouse": ["in", branch_warehouses or [""]]}, pluck="parent"
+			)
+		)
+		entry_filters["name"] = ["in", list(parents) or [""]]
 	recent_entries = frappe.get_all(
 		"Stock Entry",
 		filters=entry_filters,
-		fields=["name", "posting_date", "posting_time", "stock_entry_type"],
+		fields=["name", "posting_date", "posting_time", "stock_entry_type", "from_warehouse", "to_warehouse"],
 		order_by="creation desc",
-		limit_page_length=10,
+		limit_page_length=20,
 	)
 	for e in recent_entries:
 		e["items_label"] = ", ".join(
-			f"{i.item_code} x{i.qty}"
-			for i in frappe.get_all("Stock Entry Detail", filters={"parent": e.name}, fields=["item_code", "qty"])
+			f"{i.item_code} × {flt(i.qty):g}"
+			for i in frappe.get_all(
+				"Stock Entry Detail", filters={"parent": e.name}, fields=["item_code", "qty"], order_by="idx"
+			)
 		)
 		e["booking"] = frappe.db.get_value("Salon Booking", {"stock_entry": e.name}, "name")
 
