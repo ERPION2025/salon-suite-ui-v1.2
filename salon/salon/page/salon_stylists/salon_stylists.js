@@ -28,7 +28,7 @@ class SalonStylists {
 						<thead><tr><th>Employee ID</th><th>Name</th><th>Designation</th><th>Branch</th><th>Skills</th><th>Commission</th></tr></thead>
 						<tbody id="salon-stylists-body"></tbody>
 					</table>
-					<h2 style="font-size:16px; font-weight:500; margin-bottom:12px; color:#1a1a1a">Today's Attendance</h2>
+					<h2 class="salon-section-title">Today's Attendance</h2>
 					<table class="salon-table">
 						<thead><tr><th>Employee</th><th>Status</th><th>Check-in</th><th>Check-out</th><th>Hours Worked</th></tr></thead>
 						<tbody id="salon-attendance-body"></tbody>

@@ -25,10 +25,10 @@ class SalonStock {
 						<button class="salon-btn" id="salon-new-entry">+ Stock Entry</button>
 					</div>
 					<table class="salon-table" style="margin-bottom:28px">
-						<thead><tr><th>Item</th><th>Warehouse</th><th>On Hand</th><th>Reserved</th><th>Avg Cost</th></tr></thead>
+						<thead><tr><th>Item</th><th>Warehouse</th><th class="num">On Hand</th><th class="num">Reserved</th><th class="num">Avg Cost</th></tr></thead>
 						<tbody id="salon-stock-body"></tbody>
 					</table>
-					<h2 style="font-size:16px; font-weight:500; margin-bottom:12px; color:#1a1a1a">Recent Stock Entries</h2>
+					<h2 class="salon-section-title">Recent Stock Entries</h2>
 					<table class="salon-table">
 						<thead><tr><th>Entry</th><th>Date</th><th>Linked Booking</th><th>Items</th></tr></thead>
 						<tbody id="salon-entries-body"></tbody>
@@ -52,11 +52,11 @@ class SalonStock {
 					.map(
 						(s) => `
 				<tr>
-					<td>${frappe.utils.escape_html(s.item_code)}</td>
+					<td class="nowrap">${salon_common.doc_link('item', s.item_code)}</td>
 					<td>${frappe.utils.escape_html(s.warehouse)}</td>
-					<td>${s.actual_qty}</td>
-					<td>${s.reserved_qty}</td>
-					<td>${format_currency(s.valuation_rate || 0)}</td>
+					<td class="num">${s.actual_qty}</td>
+					<td class="num">${s.reserved_qty}</td>
+					<td class="num">${format_currency(s.valuation_rate || 0)}</td>
 				</tr>
 			`
 					)
@@ -71,7 +71,7 @@ class SalonStock {
 				<tr>
 					<td>${salon_common.doc_link('stock-entry', e.name)}</td>
 					<td>${frappe.datetime.str_to_user(e.posting_date)}</td>
-					<td>${e.booking ? `<a href="/app/salon-booking/${encodeURIComponent(e.booking)}">${frappe.utils.escape_html(e.booking)}</a>` : '&mdash;'}</td>
+					<td>${e.booking ? salon_common.doc_link('salon-booking', e.booking) : '&mdash;'}</td>
 					<td>${frappe.utils.escape_html(e.items_label || '')}</td>
 				</tr>
 			`

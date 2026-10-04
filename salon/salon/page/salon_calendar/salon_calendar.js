@@ -196,7 +196,7 @@ class SalonCalendar {
 		this.$subtitle.textContent =
 			view === 'grid'
 				? __('Drag to reschedule · click an empty slot to create a booking · live conflict checking')
-				: __('Drag a card to a new column to update its status · dropping into Completed bills it to POS');
+				: __('Drag a card to a new column to update its status · dropping into Completed bills it and opens the invoice');
 		if (view === 'board') {
 			this.render_board();
 		}
@@ -484,16 +484,13 @@ class SalonCalendar {
 				if (is_completing) {
 					if (msg.sales_invoice) {
 						frappe.show_alert({
-							message: __('Booking completed — draft invoice {0} created', [msg.sales_invoice]),
+							message: __('Booking completed — invoice {0} created', [msg.sales_invoice]),
 							indicator: 'green',
 						});
+						// Take the payment right away from the invoice popup.
+						salon_common.open_invoice(msg.sales_invoice, () => this.load_data());
 					} else {
-						frappe.show_alert({
-							message: __(
-								'Booking completed, but no draft invoice was created — set up a POS Profile for this branch'
-							),
-							indicator: 'orange',
-						});
+						frappe.show_alert({ message: __('Booking completed'), indicator: 'green' });
 					}
 				} else {
 					frappe.show_alert({ message: __('Status updated'), indicator: 'green' });
