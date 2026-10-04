@@ -124,6 +124,26 @@ Covers:
 - **POS register theme** — `/app/point-of-sale` uses the salon red/white
   palette and fonts for everyone, without the Frappe navbar; a
   "← Salon Suite" button returns to the suite.
+- **Attendance** (`/app/salon-attendance`, `salon/hr.py`) — every user
+  whose login is linked to an Employee (Employee *User ID*) can check in /
+  check out with a branch picker and mark attendance for today or a past
+  date (Present, Absent, Half Day, Work From Home). Check-in writes an
+  Employee Checkin and the day's submitted Attendance; check-out adds the
+  out time and working hours — payroll based on attendance picks it up.
+  Salon Managers see today's attendance for their whole branch on top
+  (and can check team members in/out or mark for them) plus per-stylist
+  history; stylists only see their own.
+- **Leave** (`/app/salon-leave`) — apply for leave with live balances per
+  leave type; managers approve/reject (submits the Leave Application).
+  Manager-only tabs: **Leave Allocation** (allocate days to stylists) and
+  **Leave Policy** (create a policy, then assign it to stylists, which
+  creates their allocations).
+- **Add Stylist** popup (`salon/team.py`) — new or existing Employee +
+  Salon Stylist record + optional login (User with Salon User, linked as
+  Employee User ID, welcome email sent). Salon Manager / System Manager.
+- **Stock Entry** popup (`salon/stock.py`) — Material Transfer / Receipt /
+  Issue with store rooms, items, qty and receipt rate; submitted at once.
+  Branch staff must have their branch's store room on one side.
 - **Client preferences** — `Customer` gained 6 Custom Fields (stylist
   preference, color formula, allergies, birthday — see
   `salon/fixtures/custom_field.json`) backing Client 360's Preferences

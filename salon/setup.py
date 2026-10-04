@@ -33,6 +33,11 @@ GRANTS = [
 	("Supplier", 1, 0, 1, 0),
 	("Mode of Payment", 1, 0, 0, 0),
 	("Account", 1, 0, 0, 0),
+	# Attendance & Leave screens: records are written server-side, but
+	# HRMS's own leave-balance helper (get_leave_details) lists Leave Types
+	# and pending applications with the caller's permissions.
+	("Leave Type", 1, 0, 0, 0),
+	("Leave Application", 1, 0, 0, 0),
 ]
 
 # Salon Manager gets everything Salon User has, plus managing the

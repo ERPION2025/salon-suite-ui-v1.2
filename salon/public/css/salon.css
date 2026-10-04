@@ -717,10 +717,8 @@ body.salon-page .salon-shell {
 
 /* Salon-only users: buttons that would open native create forms they
    have no permission for anyway. */
-body.salon-locked #salon-new-stylist,
 body.salon-locked #salon-new-service,
-body.salon-locked #salon-new-package,
-body.salon-locked #salon-new-entry {
+body.salon-locked #salon-new-package {
 	display: none !important;
 }
 
@@ -1665,7 +1663,7 @@ body.salon-on-pos .point-of-sale-app .grand-total-value {
 }
 .salon-nav-group {
 	margin: 0;
-	padding: 10px 0;
+	padding: 8px 0;
 }
 .salon-nav-group + .salon-nav-group {
 	border-top: 1px solid #eeeeee;
@@ -1707,7 +1705,7 @@ body.salon-on-pos .point-of-sale-app .grand-total-value {
 	gap: 1px;
 }
 .salon-sidebar nav a {
-	padding: 5px 10px 5px 21px;
+	padding: 4px 10px 4px 21px;
 	color: #4a4a4a;
 }
 .salon-sidebar nav a:hover {
@@ -1718,4 +1716,162 @@ body.salon-on-pos .point-of-sale-app .grand-total-value {
 	background: #fdeaee;
 	color: #e4002b;
 	font-weight: 600;
+}
+
+/* ============================================================
+   Attendance & Leave
+   ============================================================ */
+.salon-myday {
+	display: flex;
+	align-items: center;
+	gap: 24px;
+	flex-wrap: wrap;
+	background: #fff;
+	border: 1px solid #eee;
+	border-radius: 10px;
+	padding: 16px 20px;
+	margin-bottom: 24px;
+}
+.salon-myday-who {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	min-width: 220px;
+}
+.salon-myday-who .t {
+	font-size: 15px;
+	font-weight: 600;
+	color: #1a1a1a;
+}
+.salon-avatar-sm {
+	width: 38px;
+	height: 38px;
+	border-radius: 50%;
+	background: #e4002b;
+	color: #fff;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 600;
+	flex-shrink: 0;
+}
+.salon-myday-stats {
+	display: flex;
+	gap: 28px;
+	flex: 1;
+}
+.salon-myday-stats > div {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+.salon-myday-stats span {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #8a8a8a;
+}
+.salon-myday-stats b {
+	font-size: 16px;
+	font-weight: 600;
+	color: #1a1a1a;
+}
+.salon-myday-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.salon-myday-actions .form-control {
+	height: 36px;
+	font-size: 13px;
+	min-width: 170px;
+}
+.salon-note {
+	background: #fff8e1;
+	border: 1px solid #f5e1a4;
+	color: #6b5200;
+	border-radius: 8px;
+	padding: 12px 14px;
+	margin-bottom: 20px;
+}
+.salon-list-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+	margin: 8px 0 12px;
+}
+.salon-list-head .salon-section-title {
+	margin: 0;
+}
+.salon-list-head .form-control {
+	height: 30px;
+	font-size: 13px;
+	width: auto;
+	min-width: 150px;
+}
+.salon-row-actions {
+	text-align: right;
+}
+.salon-row-actions .salon-link-btn + .salon-link-btn {
+	margin-left: 4px;
+}
+.salon-link-btn.muted {
+	color: #757575;
+}
+.salon-tabs {
+	display: inline-flex;
+	border: 1px solid #e5e5e5;
+	border-radius: 8px;
+	overflow: hidden;
+	margin-bottom: 20px;
+	background: #fff;
+}
+.salon-tabs button {
+	border: none;
+	background: #fff;
+	padding: 8px 16px;
+	font-size: 13px;
+	color: #4a4a4a;
+	cursor: pointer;
+}
+.salon-tabs button + button {
+	border-left: 1px solid #e5e5e5;
+}
+.salon-tabs button.active {
+	background: #fdeaee;
+	color: #e4002b;
+	font-weight: 600;
+}
+.salon-balance .salon-card-value {
+	color: #e4002b;
+}
+.salon-status-present,
+.salon-status-approved {
+	background: #e8f5e9;
+	color: #2e7d32;
+}
+.salon-status-absent,
+.salon-status-rejected {
+	background: #fdeaee;
+	color: #c40025;
+}
+.salon-status-half-day,
+.salon-status-pending {
+	background: #fff8e1;
+	color: #a66a00;
+}
+.salon-status-work-from-home,
+.salon-status-on-leave {
+	background: #e3f2fd;
+	color: #1565c0;
+}
+.salon-status-not-marked {
+	background: #f5f5f5;
+	color: #757575;
+}
+#leave-body .salon-summary-row {
+	grid-template-columns: repeat(auto-fill, minmax(180px, 220px));
 }
