@@ -8,7 +8,11 @@ class SalonBookings {
 	constructor(page) {
 		this.page = page;
 		this.body = page.body.get(0);
+		this.date = frappe.datetime.get_today();
+		this.cost_center = null;
 		this.render_shell();
+		this.wire_toolbar();
+		this.load_branches();
 		this.load_data();
 	}
 
@@ -16,75 +20,133 @@ class SalonBookings {
 		this.body.innerHTML = `
 			<div class="salon-shell">
 				${salon_common.render_sidebar_html('bookings')}
-				<main class="salon-main">
-					<div class="salon-pagehead">
-						<div>
-							<h1>All Bookings</h1>
-							<p>Every booking, linked to its draft or submitted POS invoice and stock entry</p>
+				<main class="salon-main salon-main-fit">
+					<header class="salon-cal-toolbar">
+						<div class="salon-cal-title">
+							<h1>${__('All Bookings')}</h1>
+							<p>${__('Every booking with its invoice and stock entry')}</p>
 						</div>
-						<button class="salon-btn" id="salon-new-booking">+ New Booking</button>
+						<div class="salon-cal-controls">
+							<button class="btn btn-default btn-sm" data-nav="prev" title="${__('Previous day')}">&larr;</button>
+							<input type="date" class="form-control salon-cal-date" />
+							<button class="btn btn-default btn-sm" data-nav="today">${__('Today')}</button>
+							<button class="btn btn-default btn-sm" data-nav="next" title="${__('Next day')}">&rarr;</button>
+							<button class="btn btn-default btn-sm" data-nav="all">${__('All dates')}</button>
+							<span class="salon-branch-slot"></span>
+							<button class="btn btn-primary salon-cal-new" id="salon-new-booking">+ ${__('New Booking')}</button>
+						</div>
+					</header>
+					<div class="salon-table-scroll">
+						<table class="salon-table salon-table-fit">
+							<thead>
+								<tr>
+									<th>${__('Booking')}</th><th>${__('Date / Time')}</th><th class="col-branch">${__('Branch')}</th><th>${__('Client')}</th>
+									<th>${__('Services')}</th><th>${__('Stylist')}</th><th>${__('Status')}</th><th>${__('Invoice')}</th>
+									<th class="col-stock">${__('Stock')}</th><th class="num">${__('Total')}</th>
+								</tr>
+							</thead>
+							<tbody id="salon-bookings-body"></tbody>
+						</table>
 					</div>
-					<table class="salon-table">
-						<thead>
-							<tr>
-								<th>Booking ID</th><th>Date / Time</th><th>Branch</th><th>Client</th>
-								<th>Services</th><th>Stylist</th><th>Status</th><th>Invoice</th><th>Stock</th><th>Total</th>
-							</tr>
-						</thead>
-						<tbody id="salon-bookings-body"></tbody>
-					</table>
 				</main>
 			</div>
 		`;
-		document.getElementById('salon-new-booking').addEventListener('click', () => {
-			salon_common.open_quick_booking({ on_done: () => this.load_data() });
+		this.$date = this.body.querySelector('.salon-cal-date');
+		this.$date.value = this.date;
+		this.$tbody = this.body.querySelector('#salon-bookings-body');
+	}
+
+	wire_toolbar() {
+		this.$date.addEventListener('change', () => {
+			this.date = this.$date.value || null;
+			this.load_data();
+		});
+		this.body.querySelectorAll('[data-nav]').forEach((btn) =>
+			btn.addEventListener('click', () => {
+				const nav = btn.dataset.nav;
+				if (nav === 'all') {
+					this.date = null;
+				} else if (nav === 'today' || !this.date) {
+					this.date = frappe.datetime.get_today();
+				} else {
+					this.date = frappe.datetime.add_days(this.date, nav === 'next' ? 1 : -1);
+				}
+				this.$date.value = this.date || '';
+				this.load_data();
+			}),
+		);
+		this.body
+			.querySelector('#salon-new-booking')
+			.addEventListener('click', () =>
+				salon_common.open_quick_booking({ cost_center: this.cost_center, on_done: () => this.load_data() }),
+			);
+	}
+
+	// Same branch picker as the Calendar: admins choose, staff are locked
+	// to their own branch (the server enforces that either way).
+	load_branches() {
+		frappe.call('salon.api.get_branch_options').then((r) => {
+			const d = r.message || { branches: [] };
+			const slot = this.body.querySelector('.salon-branch-slot');
+			const esc = frappe.utils.escape_html;
+			if (!d.is_admin) {
+				const b = d.branches[0];
+				slot.outerHTML = `<span class="salon-branch-locked">${esc(b ? b.name : __('No store assigned'))}</span>`;
+				return;
+			}
+			slot.outerHTML = `
+				<select class="form-control salon-cal-branch">
+					<option value="">${__('All Branches')}</option>
+					${d.branches.map((b) => `<option value="${esc(b.name)}">${esc(b.name)}</option>`).join('')}
+				</select>`;
+			this.body.querySelector('.salon-cal-branch').addEventListener('change', (e) => {
+				this.cost_center = e.target.value || null;
+				this.load_data();
+			});
 		});
 	}
 
 	load_data() {
-		frappe.call('salon.api.get_all_bookings').then((r) => {
-			this.render_rows(r.message || []);
-		});
+		frappe
+			.call('salon.api.get_all_bookings', { cost_center: this.cost_center, date: this.date })
+			.then((r) => this.render_rows(r.message || []));
 	}
 
 	render_rows(rows) {
-		const body = document.getElementById('salon-bookings-body');
+		const esc = frappe.utils.escape_html;
 		if (!rows.length) {
-			body.innerHTML = '<tr><td colspan="10">No bookings yet.</td></tr>';
+			this.$tbody.innerHTML = `<tr><td colspan="10" class="salon-muted">${
+				this.date
+					? __('No bookings on {0}.', [frappe.datetime.str_to_user(this.date)])
+					: __('No bookings yet.')
+			}</td></tr>`;
 			return;
 		}
-		body.onclick = (e) => {
-			const link = e.target.closest('.salon-booking-link');
-			if (!link) return;
-			e.preventDefault();
-			salon_common.open_booking(link.dataset.booking, () => this.load_data());
-		};
-		body.innerHTML = rows
+		const dash = '<span class="salon-muted">&mdash;</span>';
+		this.$tbody.innerHTML = rows
 			.map((r) => {
-				const status_class = (r.status || '').toLowerCase().replace(/\s+/g, '-');
-				let invoice_cell = '<span class="salon-status salon-status-no-show">&mdash;</span>';
-				if (r.sales_invoice && r.invoice_docstatus === 1) {
-					invoice_cell = salon_common.doc_link('sales-invoice', r.sales_invoice);
-				} else if (r.sales_invoice) {
-					invoice_cell = salon_common.is_salon_only()
-						? '<span class="salon-status">Draft (POS)</span>'
-						: `<a href="/app/sales-invoice/${encodeURIComponent(r.sales_invoice)}"><span class="salon-status">Draft (POS)</span></a>`;
+				let invoice_cell = dash;
+				if (r.sales_invoice) {
+					let state = '';
+					if (r.invoice_docstatus === 0) state = salon_common.status_pill('Draft');
+					else if (flt(r.invoice_outstanding) > 0) state = salon_common.status_pill('Unpaid');
+					else state = salon_common.status_pill('Paid');
+					invoice_cell = `${salon_common.doc_link('sales-invoice', r.sales_invoice)}<span class="cell-sub">${state}</span>`;
 				}
-				const stock_cell = r.stock_entry
-					? salon_common.doc_link('stock-entry', r.stock_entry)
-					: '<span class="salon-status salon-status-no-show">&mdash;</span>';
 				return `
 				<tr>
-					<td><a href="#" class="salon-booking-link" data-booking="${frappe.utils.escape_html(r.name)}">${frappe.utils.escape_html(r.name)}</a></td>
-					<td>${frappe.datetime.str_to_user(r.booking_datetime)} ${frappe.datetime.str_to_user(r.booking_datetime, true)}</td>
-					<td>${frappe.utils.escape_html(r.cost_center || '')}</td>
-					<td>${frappe.utils.escape_html(r.customer || '')}</td>
-					<td>${frappe.utils.escape_html(r.services_label || '')}</td>
-					<td>${frappe.utils.escape_html(r.salon_stylist_name || '')}</td>
-					<td><span class="salon-status salon-status-${status_class}">${r.status}</span></td>
-					<td>${invoice_cell}</td>
-					<td>${stock_cell}</td>
-					<td>${format_currency(r.total_amount || 0)}</td>
+					<td class="nowrap">${salon_common.doc_link('salon-booking', r.name)}</td>
+					<td class="nowrap">${salon_common.fmt_date(r.booking_datetime)}<div class="salon-muted">${salon_common.fmt_time(
+						r.booking_datetime,
+					)}</div></td>
+					<td class="col-branch">${esc((r.cost_center || '').replace(/ - [^-]+$/, ''))}</td>
+					<td>${esc(r.customer || '')}</td>
+					<td>${esc(r.services_label || '')}</td>
+					<td>${esc(r.salon_stylist_name || '')}</td>
+					<td class="nowrap">${salon_common.status_pill(r.status)}</td>
+					<td class="nowrap">${invoice_cell}</td>
+					<td class="nowrap col-stock">${r.stock_entry ? esc(r.stock_entry) : dash}</td>
+					<td class="num">${format_currency(r.total_amount || 0)}</td>
 				</tr>`;
 			})
 			.join('');

@@ -53,7 +53,7 @@ class SalonPurchases {
 					<table class="salon-table">
 						<thead><tr>
 							<th>${__('Date')}</th><th>${__('Bill')}</th><th>${__('Supplier')}</th><th>${__('Category')}</th>
-							<th>${__('Branch')}</th><th style="text-align:right">${__('Amount')}</th><th>${__('Payment')}</th>
+							<th>${__('Branch')}</th><th class="num">${__('Amount')}</th><th>${__('Payment')}</th>
 						</tr></thead>
 						<tbody id="salon-purchase-body"></tbody>
 					</table>
@@ -145,7 +145,7 @@ class SalonPurchases {
 						<td>${esc(p.supplier_name || p.supplier || '')}</td>
 						<td>${esc(__(p.category || ''))}</td>
 						<td>${esc(p.cost_center || '')}</td>
-						<td style="text-align:right">${format_currency(amount, p.currency)}</td>
+						<td class="num">${format_currency(amount, p.currency)}</td>
 						<td>${payment}</td>
 					</tr>`;
 			})

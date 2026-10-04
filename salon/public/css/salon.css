@@ -724,12 +724,12 @@ body.salon-locked #salon-new-entry {
 	display: none !important;
 }
 
-/* "Back to Salon Suite" pill - only on the POS register, only for
-   salon-only users (they have no navbar there). */
+/* "Back to Salon Suite" pill - on the POS register, for every user
+   (the navbar is hidden there in the salon theme). */
 .salon-pos-back {
 	display: none;
 }
-body.salon-locked.salon-on-pos .salon-pos-back {
+body.salon-on-pos .salon-pos-back {
 	display: inline-flex;
 	position: fixed;
 	left: 16px;
@@ -744,7 +744,7 @@ body.salon-locked.salon-on-pos .salon-pos-back {
 	text-decoration: none;
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
-body.salon-locked.salon-on-pos .salon-pos-back:hover {
+body.salon-on-pos .salon-pos-back:hover {
 	background: #c00025;
 	color: #ffffff;
 	text-decoration: none;
@@ -1254,4 +1254,403 @@ body.salon-locked.salon-on-pos .salon-pos-back:hover {
 	margin: 12px 0 0;
 	font-size: 12px;
 	color: #8a8a8a;
+}
+
+/* ============================================================
+   Salon Suite design system — ONE type scale for every screen,
+   popup and list. Matches the sidebar menu: Frappe's own font
+   stack (Inter), 13px regular body text. Later rules here win
+   over the per-page rules above on purpose.
+   ============================================================ */
+.salon-shell,
+.salon-dialog,
+.salon-pos-back {
+	font-family: var(--font-stack, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+	font-size: 13px;
+	line-height: 1.45;
+	color: #333;
+	-webkit-font-smoothing: antialiased;
+	font-variant-numeric: tabular-nums;
+}
+.salon-shell h1,
+.salon-pagehead h1,
+.salon-header h1,
+.salon-cal-title h1 {
+	font-size: 20px;
+	font-weight: 600;
+	letter-spacing: -0.01em;
+	line-height: 1.25;
+	margin: 0 0 4px;
+	color: #1a1a1a;
+}
+.salon-pagehead p,
+.salon-header p,
+.salon-cal-title p {
+	font-size: 13px;
+	font-weight: 400;
+	color: #8a8a8a;
+}
+.salon-shell h2,
+.salon-section-title,
+.salon-client-subs h2,
+.salon-timeline h2,
+.salon-schedule h2 {
+	font-size: 15px;
+	font-weight: 600;
+	color: #1a1a1a;
+	margin: 0 0 12px;
+}
+.salon-section-title {
+	margin-top: 8px;
+}
+.salon-shell h3 {
+	font-size: 14px;
+	font-weight: 600;
+}
+.salon-muted {
+	font-size: 12px;
+	color: #9a9a9a;
+}
+
+/* Sidebar: same 13px as the content, compact enough that the whole
+   menu fits on a laptop screen without its own scrollbar. */
+.salon-sidebar-scroll {
+	padding: 18px 14px 12px;
+}
+.salon-brand {
+	font-size: 15px;
+	font-weight: 600;
+	margin-bottom: 16px;
+}
+.salon-nav-group {
+	margin-bottom: 10px;
+}
+.salon-nav-group-title {
+	padding: 0 10px 4px;
+}
+.salon-sidebar nav a {
+	padding: 6px 10px;
+	font-size: 13px;
+	line-height: 1.35;
+	color: #333;
+}
+.salon-sidebar nav a.active {
+	font-weight: 500;
+}
+
+/* Tables: 13px cells like the menu, small caps headers, numbers right
+   aligned and never wrapped, nothing ever forcing a horizontal scroll. */
+.salon-main {
+	overflow-x: hidden;
+}
+.salon-table {
+	table-layout: auto;
+}
+.salon-table th {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #8a8a8a;
+	white-space: nowrap;
+	padding: 10px 12px;
+	background: #fff;
+}
+.salon-table td {
+	font-size: 13px;
+	font-weight: 400;
+	color: #333;
+	line-height: 1.4;
+	padding: 10px 12px;
+	vertical-align: middle;
+	overflow-wrap: break-word;
+}
+.salon-table td a,
+.salon-doc-link {
+	color: #e4002b;
+	font-weight: 500;
+	text-decoration: none;
+}
+.salon-table td a:hover,
+.salon-doc-link:hover {
+	text-decoration: underline;
+}
+.salon-table .num,
+.salon-table th.num {
+	text-align: right;
+	white-space: nowrap;
+	overflow-wrap: normal;
+}
+.salon-table .nowrap {
+	white-space: nowrap;
+	overflow-wrap: normal;
+}
+.salon-table td .salon-muted {
+	font-size: 12px;
+}
+
+/* Status pills: always one line, same size everywhere. */
+.salon-status {
+	display: inline-block;
+	white-space: nowrap;
+	font-size: 11px;
+	font-weight: 500;
+	line-height: 18px;
+	padding: 0 8px;
+	border-radius: 999px;
+	vertical-align: middle;
+	background: #f5f5f5;
+	color: #616161;
+}
+.salon-status-active,
+.salon-status-paid,
+.salon-status-completed {
+	background: #e8f5e9;
+	color: #2e7d32;
+}
+.salon-status-confirmed,
+.salon-status-unpaid,
+.salon-status-overdue,
+.salon-status-partly-paid {
+	background: #fdeaee;
+	color: #e4002b;
+}
+.salon-status-checked-in,
+.salon-status-pending-payment {
+	background: #e3f2fd;
+	color: #1565c0;
+}
+.salon-status-tentative,
+.salon-status-draft {
+	background: #fff8e1;
+	color: #a66a00;
+}
+.salon-status-no-show,
+.salon-status-cancelled,
+.salon-status-expired,
+.salon-status-disabled {
+	background: #f5f5f5;
+	color: #757575;
+}
+
+/* Cards and buttons on the same scale. */
+.salon-card-value {
+	font-size: 22px;
+	font-weight: 600;
+	white-space: nowrap;
+}
+.salon-card-label {
+	font-size: 12px;
+}
+.salon-btn {
+	font-size: 13px;
+	font-weight: 500;
+	line-height: 1.2;
+	padding: 9px 16px;
+	white-space: nowrap;
+}
+.salon-cal-controls .btn,
+.salon-cal-controls .form-control {
+	font-size: 13px;
+}
+.salon-package-card-title {
+	font-size: 14px;
+	font-weight: 600;
+	color: #1a1a1a;
+	margin-top: 4px;
+}
+
+/* List screens that must fit the window: the toolbar stays put and only
+   the table body scrolls, with a sticky header (Bookings). */
+.salon-main.salon-main-fit {
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	padding: 24px 32px;
+}
+.salon-main-fit .salon-cal-controls {
+	flex-wrap: wrap;
+	justify-content: flex-end;
+}
+.salon-table-scroll {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	overflow-x: hidden;
+	background: #fff;
+	border: 1px solid #eee;
+	border-radius: 10px;
+}
+.salon-table-scroll .salon-table {
+	border: none;
+	border-radius: 0;
+	overflow: visible;
+}
+.salon-table-scroll thead th {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	box-shadow: inset 0 -1px 0 #eee;
+}
+
+/* ---- Salon popups (booking / invoice / item / payment) ---- */
+.salon-dialog .modal-title {
+	font-size: 16px;
+	font-weight: 600;
+	color: #1a1a1a;
+}
+.salon-dialog .control-label,
+.salon-dialog .form-control,
+.salon-dialog .btn {
+	font-size: 13px;
+}
+.salon-popup-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 0 24px;
+	margin-bottom: 16px;
+}
+.salon-popup-grid > div {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	padding: 8px 0;
+	border-bottom: 1px solid #f0f0f0;
+}
+.salon-popup-grid > div > span {
+	color: #8a8a8a;
+}
+.salon-popup-grid > div > b {
+	font-weight: 500;
+	color: #1a1a1a;
+	text-align: right;
+}
+.salon-popup-subtitle {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #8a8a8a;
+	margin: 16px 0 8px;
+}
+.salon-popup-table {
+	margin-bottom: 4px;
+}
+.salon-popup-table tfoot td {
+	font-weight: 600;
+	color: #1a1a1a;
+	border-top: 1px solid #eee;
+}
+.salon-popup-table tfoot tr.owed td {
+	color: #e4002b;
+}
+.salon-popup-notes {
+	margin-top: 12px;
+	padding: 10px 12px;
+	background: #fafafa;
+	border-radius: 8px;
+	color: #4a4a4a;
+	white-space: pre-wrap;
+}
+.salon-popup-actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 8px;
+	margin-top: 16px;
+}
+.salon-popup-actions:empty {
+	display: none;
+}
+@media (max-width: 640px) {
+	.salon-popup-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* ============================================================
+   POS register in the salon theme (red / white, same fonts).
+   ERPNext's POS colours come from the --blue-* scale and the
+   primary button tokens, so re-pointing those re-themes the
+   whole register without touching its layout.
+   ============================================================ */
+body.salon-on-pos {
+	--blue-50: #fff1f3;
+	--blue-100: #fde3e8;
+	--blue-200: #f6aebb;
+	--blue-300: #ef8296;
+	--blue-400: #e84868;
+	--blue-500: #e4002b;
+	--blue-600: #c40025;
+	--blue-700: #a3001f;
+	--primary: #e4002b;
+	--primary-color: #e4002b;
+	--btn-primary: #e4002b;
+	--border-primary: #e4002b;
+	background: #fafafa;
+}
+body.salon-on-pos .navbar,
+body.salon-on-pos .sticky-top:has(> .navbar) {
+	display: none !important;
+}
+body.salon-on-pos .page-head {
+	top: 0 !important;
+	border-bottom: 2px solid #e4002b;
+	background: #fff;
+}
+body.salon-on-pos .page-head .title-text {
+	font-size: 18px;
+	font-weight: 600;
+	color: #1a1a1a;
+}
+body.salon-on-pos .point-of-sale-app,
+body.salon-on-pos .page-head {
+	font-family: var(--font-stack, 'Inter', sans-serif);
+	font-size: 13px;
+}
+body.salon-on-pos .btn-primary,
+body.salon-on-pos .btn-primary:focus {
+	background-color: #e4002b;
+	border-color: #e4002b;
+	color: #fff;
+}
+body.salon-on-pos .btn-primary:hover,
+body.salon-on-pos .btn-primary:active {
+	background-color: #c40025;
+	border-color: #c40025;
+	color: #fff;
+}
+body.salon-on-pos .point-of-sale-app .pos-card {
+	border: 1px solid #eee;
+	box-shadow: none;
+}
+body.salon-on-pos .point-of-sale-app .item-wrapper:hover {
+	box-shadow: 0 0 0 1px #e4002b;
+}
+body.salon-on-pos .point-of-sale-app .item-rate,
+body.salon-on-pos .point-of-sale-app .grand-total-value {
+	color: #e4002b;
+}
+
+/* Bookings: secondary columns step aside on narrower laptop screens so the
+   table always fits the window without a horizontal scroll. */
+.salon-table .cell-sub {
+	display: block;
+	margin-top: 2px;
+}
+@media (max-width: 1440px) {
+	.salon-table .col-stock {
+		display: none;
+	}
+}
+@media (max-width: 1366px) {
+	.salon-table .col-branch {
+		display: none;
+	}
+}
+/* Document IDs (SALON-BK-…, ACC-SINV-…) a touch smaller than body text. */
+.salon-table td .salon-doc-link {
+	font-size: 12px;
+	white-space: nowrap;
 }

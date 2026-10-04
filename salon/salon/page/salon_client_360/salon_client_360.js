@@ -111,7 +111,7 @@ class SalonClient360 {
 			html += `
 				<div class="salon-package-card">
 					<div class="tag">Active Package</div>
-					<div style="font-size:14px; font-weight:500; color:#1a1a1a; margin-top:4px">
+					<div class="salon-package-card-title">
 						${frappe.utils.escape_html(pkg.package_item)} &mdash; ${pkg.sessions_remaining} of ${pkg.sessions_total} left
 					</div>
 					<div class="salon-package-bar"><div class="salon-package-bar-fill" style="width:${pct}%"></div></div>
@@ -123,7 +123,7 @@ class SalonClient360 {
 
 		html += `<div class="salon-timeline"><h2>Visit Timeline</h2>`;
 		if (!d.visits.length) {
-			html += `<p style="color:#9a9a9a; font-size:13px">No completed visits yet.</p>`;
+			html += `<p class="salon-muted">No completed visits yet.</p>`;
 		} else {
 			d.visits.forEach((v) => {
 				html += `
@@ -220,7 +220,7 @@ class SalonClient360 {
 						<div><span>${__('Validity')}</span><b>${
 							p.custom_package_validity_days ? __('{0} days from payment', [p.custom_package_validity_days]) : __('No expiry')
 						}</b></div>
-						<p>${__('A draft bill goes to the POS register. The package becomes Active as soon as the cashier takes payment.')}</p>
+						<p>${__('An invoice is created and the package becomes Active straight away. Record the payment from the invoice.')}</p>
 					</div>`);
 			};
 			d = new frappe.ui.Dialog({
@@ -258,7 +258,7 @@ class SalonClient360 {
 					},
 					{ fieldname: 'summary', fieldtype: 'HTML' },
 				],
-				primary_action_label: __('Send to POS'),
+				primary_action_label: __('Create & Bill'),
 				primary_action: (values) => {
 					frappe
 						.call({
@@ -276,21 +276,21 @@ class SalonClient360 {
 							this.load_client(customer);
 							const m = res.message || {};
 							const done = new frappe.ui.Dialog({
-								title: __('Sent to POS'),
+								title: __('Subscription created'),
 								fields: [
 									{
 										fieldname: 'msg',
 										fieldtype: 'HTML',
 										options: `<p>${__(
-											'Subscription {0} is waiting for payment. Draft bill {1} is in the {2} register under Draft orders.',
-											[m.subscription, m.sales_invoice, m.pos_profile]
+											'Subscription {0} is {1}. Invoice {2} has been created — record the payment now or later from the invoice.',
+											[m.subscription, m.status, m.sales_invoice]
 										)}</p>`,
 									},
 								],
-								primary_action_label: __('Take payment now'),
+								primary_action_label: __('Record payment now'),
 								primary_action: () => {
 									done.hide();
-									frappe.set_route('point-of-sale');
+									salon_common.open_invoice(m.sales_invoice, () => this.load_client(customer));
 								},
 								secondary_action_label: __('Later'),
 								secondary_action: () => done.hide(),

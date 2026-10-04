@@ -26,7 +26,7 @@ class SalonPnl {
 					</div>
 					<div class="salon-summary-row" id="salon-pnl-summary"></div>
 					<div id="salon-pnl-tables"></div>
-					<p style="color:#9a9a9a; font-size:12px; margin-top:12px">
+					<p class="salon-muted" style="margin-top:12px">
 						Simplified view &mdash; direct Income/Expense account totals from GL Entry for the
 						period, not a full consolidated Financial Statement (no budget, prior-year
 						comparison, or multi-currency handling). Use "Full Report" above for anything
@@ -53,21 +53,21 @@ class SalonPnl {
 			<div class="salon-card"><div class="salon-card-value">${format_currency(d.net_profit)}</div><div class="salon-card-label">Net Profit</div></div>
 		`;
 
-		const row = (r) => `<tr><td>${frappe.utils.escape_html(r.account_name)}</td><td style="text-align:right">${format_currency(Math.abs(r.net))}</td></tr>`;
+		const row = (r) => `<tr><td>${frappe.utils.escape_html(r.account_name)}</td><td class="num">${format_currency(Math.abs(r.net))}</td></tr>`;
 
 		document.getElementById('salon-pnl-tables').innerHTML = `
 			<div class="salon-pnl-section-title">Revenue</div>
 			<table class="salon-table">
 				<tbody>
 					${d.revenue.map(row).join('') || '<tr><td colspan="2">No revenue posted this period.</td></tr>'}
-					<tr class="salon-pnl-total-row"><td>Total Revenue</td><td style="text-align:right">${format_currency(d.total_revenue)}</td></tr>
+					<tr class="salon-pnl-total-row"><td>Total Revenue</td><td class="num">${format_currency(d.total_revenue)}</td></tr>
 				</tbody>
 			</table>
 			<div class="salon-pnl-section-title">Expenses</div>
 			<table class="salon-table">
 				<tbody>
 					${d.expense.map(row).join('') || '<tr><td colspan="2">No expenses posted this period.</td></tr>'}
-					<tr class="salon-pnl-total-row"><td>Total Expenses</td><td style="text-align:right">${format_currency(d.total_expense)}</td></tr>
+					<tr class="salon-pnl-total-row"><td>Total Expenses</td><td class="num">${format_currency(d.total_expense)}</td></tr>
 				</tbody>
 			</table>
 			${this.render_purchases(d.purchases || [])}
@@ -90,7 +90,7 @@ class SalonPnl {
 							<td>${frappe.utils.escape_html(__(p.category))}</td>
 							<td>${p.bills}</td>
 							<td class="salon-muted">${how[p.category] || ''}</td>
-							<td style="text-align:right">${format_currency(p.amount || 0)}</td>
+							<td class="num">${format_currency(p.amount || 0)}</td>
 						</tr>`
 					)
 					.join('')
@@ -98,7 +98,7 @@ class SalonPnl {
 		return `
 			<div class="salon-pnl-section-title">${__('Purchases this period')}</div>
 			<table class="salon-table">
-				<thead><tr><th>${__('Category')}</th><th>${__('Bills')}</th><th>${__('How it shows in P&L')}</th><th style="text-align:right">${__('Amount')}</th></tr></thead>
+				<thead><tr><th>${__('Category')}</th><th>${__('Bills')}</th><th>${__('How it shows in P&L')}</th><th class="num">${__('Amount')}</th></tr></thead>
 				<tbody>${rows}</tbody>
 			</table>
 		`;

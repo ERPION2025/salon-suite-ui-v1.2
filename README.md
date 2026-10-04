@@ -92,10 +92,10 @@ Covers:
   created on the fly. Note: if Buying Settings require a Purchase Order /
   Receipt before an invoice, turn that off for these bills to post.
 - **Subscriptions from Client 360** — "+ Add Subscription" sells a
-  package to the open client: a draft POS invoice goes to the branch
-  register and the Package Subscription sits as *Pending Payment*; the
-  cashier submitting that invoice makes it *Active* (start date = payment
-  date, expiry from the Item's *Package Validity (Days)*). Client 360
+  package to the open client: a submitted Sales Invoice is created on the
+  branch and the Package Subscription turns *Active* at once (start date =
+  invoice date, expiry from the Item's *Package Validity (Days)*); the
+  payment is recorded from the invoice popup. Client 360
   lists all of the client's subscriptions. Package Items get two fields:
   *Package Sessions* and *Package Validity (Days)*.
 - **Permission repair** — older builds inserted bare Custom DocPerms for
@@ -104,6 +104,26 @@ Covers:
   Bin, GL Entry, ...). `after_migrate` now copies the missing standard
   rows back for doctypes that only had salon/System Manager custom rows,
   and new grants call `setup_custom_perms` first.
+- **Invoices are submitted, never left as drafts** — completing a
+  booking or selling a package from Client 360 creates and SUBMITS the
+  Sales Invoice straight away (`salon/salon/billing.py`). Payment is
+  recorded from the salon **invoice popup** (Record Payment: paid by,
+  amount, date, card/transfer reference for bank modes), which creates and
+  submits a Payment Entry. Drafts left by older builds show a *Submit
+  invoice* button in the same popup; submitting one also activates its
+  Pending Payment subscription.
+- **Salon popups instead of native forms** — booking IDs, invoice
+  numbers and item codes anywhere in the suite (Bookings, Calendar,
+  Client 360, Packages, Services, Stock, GL Postings) open salon-styled
+  popups for every role; link clicks are intercepted in the capture
+  phase so Frappe's router never opens the native form.
+- **One type scale** — every screen, list and popup uses the sidebar's
+  font (Frappe's Inter stack) at 13px; status pills, IDs and amounts never
+  wrap; list screens never scroll horizontally (Bookings hides its
+  Stock / Branch columns on narrower laptops and scrolls only its table).
+- **POS register theme** — `/app/point-of-sale` uses the salon red/white
+  palette and fonts for everyone, without the Frappe navbar; a
+  "← Salon Suite" button returns to the suite.
 - **Client preferences** — `Customer` gained 6 Custom Fields (stylist
   preference, color formula, allergies, birthday — see
   `salon/fixtures/custom_field.json`) backing Client 360's Preferences

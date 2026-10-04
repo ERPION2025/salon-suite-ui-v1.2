@@ -28,7 +28,7 @@ class SalonPayroll {
 						<thead><tr><th>Stylist</th><th>Commission %</th><th>Entries</th><th>Amount Accrued</th></tr></thead>
 						<tbody id="salon-payroll-body"></tbody>
 					</table>
-					<p style="color:#9a9a9a; font-size:12px; margin-top:12px">
+					<p class="salon-muted" style="margin-top:12px">
 						Each row is Additional Salary entries (Service Commission component) created by
 						<code>salon/salon/events.py</code> when a cashier submits an invoice &mdash; not a
 						full Salary Slip breakdown. Run normal Payroll for the authoritative payslip.
@@ -62,7 +62,7 @@ class SalonPayroll {
 					<td>${frappe.utils.escape_html(r.stylist_name || '')}</td>
 					<td>${r.commission_rate || 0}%</td>
 					<td>${r.entries}</td>
-					<td>${format_currency(r.amount)}</td>
+					<td class="num">${format_currency(r.amount)}</td>
 				</tr>
 			`
 					)

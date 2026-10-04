@@ -47,10 +47,10 @@ class SalonServices {
 					.map(
 						(s) => `
 				<tr>
-					<td>${salon_common.doc_link('item', s.name)}</td>
+					<td class="nowrap">${salon_common.doc_link('item', s.name)}</td>
 					<td>${frappe.utils.escape_html(s.item_name || '')}</td>
 					<td>${frappe.utils.escape_html(s.item_group || '')}</td>
-					<td>${format_currency(s.rate || 0)}</td>
+					<td class="num">${format_currency(s.rate || 0)}</td>
 					<td>${s.has_recipe ? '<span class="salon-status salon-status-confirmed">Yes</span>' : '<span class="salon-status salon-status-no-show">&mdash;</span>'}</td>
 				</tr>
 			`

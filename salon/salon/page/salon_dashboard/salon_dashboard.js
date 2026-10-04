@@ -142,7 +142,7 @@ class SalonDashboard {
 							(r) => `
 						<tr>
 							<td>${frappe.utils.escape_html(r.cost_center)}</td>
-							<td>${format_currency(r.revenue || 0)}</td>
+							<td class="num">${format_currency(r.revenue || 0)}</td>
 						</tr>
 					`
 						)
@@ -167,7 +167,7 @@ class SalonDashboard {
 					<td>${frappe.utils.escape_html(r.customer || '')}</td>
 					<td>${frappe.utils.escape_html(r.salon_stylist || '')}</td>
 					<td><span class="salon-status salon-status-${status_class}">${r.status}</span></td>
-					<td>${format_currency(r.total_amount || 0)}</td>
+					<td class="num">${format_currency(r.total_amount || 0)}</td>
 				</tr>
 			`;
 			})

@@ -25,9 +25,12 @@ class SalonPackages {
 						<button class="salon-btn" id="salon-new-package">+ New Package</button>
 					</div>
 					<div class="salon-pricing-grid" id="salon-pricing-grid"></div>
-					<h2 style="font-size:16px; font-weight:500; margin-bottom:12px; color:#1a1a1a">Active Subscriptions</h2>
-					<table class="salon-table">
-						<thead><tr><th>Sub ID</th><th>Client</th><th>Package</th><th>Sessions</th><th>Expires</th></tr></thead>
+					<h2 class="salon-section-title">${__('Active Subscriptions')}</h2>
+					<table class="salon-table salon-table-fit">
+						<thead><tr>
+							<th>${__('Sub ID')}</th><th>${__('Client')}</th><th>${__('Package')}</th><th>${__('Branch')}</th>
+							<th>${__('Sessions')}</th><th>${__('Status')}</th><th>${__('Expires')}</th><th>${__('Invoice')}</th>
+						</tr></thead>
 						<tbody id="salon-subs-body"></tbody>
 					</table>
 				</main>
@@ -49,14 +52,14 @@ class SalonPackages {
 					.map(
 						(p) => `
 				<div class="salon-pricing-card">
-					<h3>${frappe.utils.escape_html(p.item_name)}</h3>
+					<h3>${salon_common.doc_link('item', p.name, p.item_name)}</h3>
 					<div class="desc">${frappe.utils.escape_html(p.description || '')}</div>
 					<div class="price">${format_currency(p.rate)}</div>
 				</div>
 			`
 					)
 					.join('')
-			: `<p style="color:#9a9a9a; font-size:13px">No Items tagged under Item Group "Packages" yet.</p>`;
+			: `<p class="salon-muted">${__('No Items tagged under Item Group "Packages" yet.')}</p>`;
 
 		const body = document.getElementById('salon-subs-body');
 		body.innerHTML = d.subscriptions.length
@@ -64,15 +67,18 @@ class SalonPackages {
 					.map(
 						(s) => `
 				<tr>
-					<td>${salon_common.doc_link('package-subscription', s.name)}</td>
-					<td>${frappe.utils.escape_html(s.customer || '')}</td>
-					<td>${frappe.utils.escape_html(s.package_item || '')}</td>
-					<td>${s.sessions_remaining} of ${s.sessions_total} left</td>
-					<td>${s.expiry_date ? frappe.datetime.str_to_user(s.expiry_date) : '&mdash;'}</td>
+					<td class="nowrap">${frappe.utils.escape_html(s.name)}</td>
+					<td><a href="/app/salon-client-360/${encodeURIComponent(s.customer)}">${frappe.utils.escape_html(s.customer_name || s.customer || '')}</a></td>
+					<td>${salon_common.doc_link('item', s.package_item, s.package_name || s.package_item)}</td>
+					<td>${frappe.utils.escape_html((s.cost_center || '').replace(/ - [^-]+$/, '') || '—')}</td>
+					<td class="nowrap">${s.sessions_remaining} ${__('of')} ${s.sessions_total} ${__('left')}</td>
+					<td class="nowrap">${salon_common.status_pill(s.status)}</td>
+					<td class="nowrap">${s.expiry_date ? frappe.datetime.str_to_user(s.expiry_date) : '&mdash;'}</td>
+					<td class="nowrap">${s.sales_invoice ? salon_common.doc_link('sales-invoice', s.sales_invoice) : '&mdash;'}</td>
 				</tr>
 			`
 					)
 					.join('')
-			: '<tr><td colspan="5">No active subscriptions.</td></tr>';
+			: `<tr><td colspan="8" class="salon-muted">${__('No active subscriptions.')}</td></tr>`;
 	}
 }

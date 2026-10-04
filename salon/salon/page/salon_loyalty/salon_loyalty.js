@@ -23,7 +23,7 @@ class SalonLoyalty {
 							<p>Tiers and earning rules from your Loyalty Program setup</p>
 						</div>
 					</div>
-					<div id="salon-loyalty-body"><p style="color:#9a9a9a; font-size:13px">Loading&hellip;</p></div>
+					<div id="salon-loyalty-body"><p class="salon-muted">Loading&hellip;</p></div>
 				</main>
 			</div>
 		`;
@@ -38,15 +38,15 @@ class SalonLoyalty {
 	render(d) {
 		const root = document.getElementById('salon-loyalty-body');
 		if (!d.programs.length) {
-			root.innerHTML = `<p style="color:#9a9a9a; font-size:13px">No Loyalty Program configured yet. Create one under Accounts &gt; Loyalty Program.</p>`;
+			root.innerHTML = `<p class="salon-muted">No Loyalty Program configured yet. Create one under Accounts &gt; Loyalty Program.</p>`;
 			return;
 		}
 
 		let html = '';
 		d.programs.forEach((p) => {
-			html += `<h2 style="font-size:16px; font-weight:500; margin:0 0 12px; color:#1a1a1a">${frappe.utils.escape_html(p.loyalty_program_name)}</h2>`;
+			html += `<h2 class="salon-section-title">${frappe.utils.escape_html(p.loyalty_program_name)}</h2>`;
 			if (!p.tiers.length) {
-				html += `<p style="color:#9a9a9a; font-size:13px; margin-bottom:20px">No tiers defined on this program yet.</p>`;
+				html += `<p class="salon-muted" style="margin-bottom:20px">No tiers defined on this program yet.</p>`;
 			} else {
 				html += `<div class="salon-tier-grid">`;
 				p.tiers.forEach((t) => {

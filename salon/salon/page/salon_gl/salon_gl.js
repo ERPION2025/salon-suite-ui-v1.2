@@ -23,7 +23,7 @@ class SalonGL {
 							<p>Every Sales Invoice, Stock Entry and commission posting &mdash; grouped by voucher</p>
 						</div>
 					</div>
-					<div id="salon-gl-body"><p style="color:#9a9a9a; font-size:13px">Loading&hellip;</p></div>
+					<div id="salon-gl-body"><p class="salon-muted">Loading&hellip;</p></div>
 				</main>
 			</div>
 		`;
@@ -38,7 +38,7 @@ class SalonGL {
 	render(postings) {
 		const root = document.getElementById('salon-gl-body');
 		if (!postings.length) {
-			root.innerHTML = `<p style="color:#9a9a9a; font-size:13px">No GL postings yet.</p>`;
+			root.innerHTML = `<p class="salon-muted">No GL postings yet.</p>`;
 			return;
 		}
 		root.innerHTML = postings

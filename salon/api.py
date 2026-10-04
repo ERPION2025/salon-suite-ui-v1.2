@@ -116,9 +116,9 @@ def mark_completed(booking):
 
 @frappe.whitelist()
 def complete_and_bill(booking):
-	"""Mark a booking Completed and hand it off to the branch's POS
-	register. Returns the draft invoice + POS profile so the caller can
-	route the cashier straight into POS to take payment."""
+	"""Mark a booking Completed - this creates and submits its Sales
+	Invoice. Returns the invoice so the caller can open the invoice popup
+	and record the payment."""
 	from salon.salon.permissions import get_pos_profile_for_cost_center
 
 	doc = frappe.get_doc("Salon Booking", booking)
@@ -245,20 +245,29 @@ def _attach_stylist_names(rows, key="salon_stylist"):
 
 
 def _attach_services_label(rows):
+	"""Human-readable service names (Item Name, not the item code)."""
+	names = {}
 	for r in rows:
-		r["services_label"] = ", ".join(
-			frappe.get_all("Booking Service", filters={"parent": r.name}, pluck="item")
-		)
+		codes = frappe.get_all("Booking Service", filters={"parent": r.name}, pluck="item", order_by="idx")
+		labels = []
+		for code in codes:
+			if code not in names:
+				names[code] = frappe.db.get_value("Item", code, "item_name") or code
+			labels.append(names[code])
+		r["services_label"] = ", ".join(labels)
 	return rows
 
 
 @frappe.whitelist()
-def get_all_bookings(cost_center=None, limit=50):
+def get_all_bookings(cost_center=None, date=None, limit=200):
 	cost_center = resolve_cost_center_filter(cost_center)
 
 	filters = {}
 	if cost_center:
 		filters["cost_center"] = cost_center
+	if date:
+		day = getdate(date)
+		filters["booking_datetime"] = ["between", [f"{day} 00:00:00", f"{day} 23:59:59"]]
 
 	rows = frappe.get_all(
 		"Salon Booking",
@@ -268,25 +277,30 @@ def get_all_bookings(cost_center=None, limit=50):
 			"status", "sales_invoice", "stock_entry", "total_amount",
 		],
 		order_by="booking_datetime desc",
-		limit_page_length=limit,
+		limit_page_length=min(cint(limit) or 200, 500),
 	)
 	_attach_stylist_names(rows)
 	_attach_services_label(rows)
 
-	# Invoice is created as a DRAFT at booking-completion time (see
+	# Older builds created the invoice as a DRAFT at booking-completion time (see
 	# Salon Booking.create_draft_invoice()) and only becomes real revenue
 	# once a cashier submits it in POS - surface that distinction rather
 	# than just "has an invoice or not".
 	invoice_names = [r.sales_invoice for r in rows if r.sales_invoice]
-	invoice_status = {}
+	invoice_info = {}
 	if invoice_names:
-		invoice_status = dict(
-			frappe.get_all(
-				"Sales Invoice", filters={"name": ["in", invoice_names]}, fields=["name", "docstatus"], as_list=True
+		invoice_info = {
+			i.name: i
+			for i in frappe.get_all(
+				"Sales Invoice",
+				filters={"name": ["in", invoice_names]},
+				fields=["name", "docstatus", "outstanding_amount"],
 			)
-		)
+		}
 	for r in rows:
-		r["invoice_docstatus"] = invoice_status.get(r.sales_invoice) if r.sales_invoice else None
+		info = invoice_info.get(r.sales_invoice) if r.sales_invoice else None
+		r["invoice_docstatus"] = info.docstatus if info else None
+		r["invoice_outstanding"] = flt(info.outstanding_amount) if info else None
 
 	return rows
 
@@ -396,10 +410,10 @@ def get_branch_options():
 
 
 # ---------------------------------------------------------------------------
-# Package subscriptions sold from Client 360 - billed through the branch's
-# POS register exactly like a completed booking: a draft POS invoice is
-# handed off, and the subscription only turns Active once a cashier
-# submits that invoice (salon/salon/events.py).
+# Package subscriptions sold from Client 360 - billed like a completed
+# booking: a submitted Sales Invoice on the branch, which activates the
+# subscription (salon/salon/events.py). Payment is recorded from the
+# invoice popup.
 # ---------------------------------------------------------------------------
 @frappe.whitelist()
 def get_subscription_options():
@@ -446,11 +460,7 @@ def create_subscription(customer, package_item, sessions_total=None, cost_center
 
 	rate = frappe.db.get_value("Item Price", {"item_code": package_item, "selling": 1}, "price_list_rate") or 0
 
-	from salon.salon.billing import make_draft_pos_invoice
-
-	sales_invoice, pos_profile = make_draft_pos_invoice(
-		customer, cost_center, [{"item_code": package_item, "qty": 1, "rate": rate}]
-	)
+	from salon.salon.billing import make_sales_invoice
 
 	sub = frappe.new_doc("Package Subscription")
 	sub.customer = customer
@@ -460,10 +470,20 @@ def create_subscription(customer, package_item, sessions_total=None, cost_center
 	sub.sessions_used = 0
 	sub.start_date = getdate(start_date) if start_date else None
 	sub.status = "Pending Payment"
-	sub.sales_invoice = sales_invoice
 	sub.insert(ignore_permissions=True)
 
-	return {"subscription": sub.name, "sales_invoice": sales_invoice, "pos_profile": pos_profile}
+	# Submitted invoice straight away; linking it before submit lets the
+	# Sales Invoice on_submit hook flip the subscription to Active
+	# (salon/salon/events.py). Payment is recorded from the invoice popup.
+	sales_invoice = make_sales_invoice(
+		customer,
+		cost_center,
+		[{"item_code": package_item, "qty": 1, "rate": rate}],
+		before_submit=lambda si: sub.db_set("sales_invoice", si.name),
+	)
+	sub.reload()
+
+	return {"subscription": sub.name, "status": sub.status, "sales_invoice": sales_invoice}
 
 
 @frappe.whitelist()
@@ -496,14 +516,27 @@ def get_packages_data(cost_center=None):
 			"Item Price", {"item_code": p.name, "selling": 1}, "price_list_rate"
 		) or 0
 
-	sub_filters = {"status": "Active"}
+	# Live subscriptions: Active, plus ones sold but still Pending Payment
+	# (older builds left those waiting on a draft POS invoice).
+	sub_filters = {"status": ["in", ["Active", "Pending Payment"]]}
+	or_filters = None
+	if cost_center:
+		# Own branch, plus older subscriptions created before Branch existed.
+		or_filters = [["cost_center", "=", cost_center], ["cost_center", "is", "not set"]]
 	subs = frappe.get_all(
 		"Package Subscription",
 		filters=sub_filters,
-		fields=["name", "customer", "package_item", "sessions_total", "sessions_used", "sessions_remaining", "expiry_date"],
-		order_by="expiry_date asc",
-		limit_page_length=50,
+		or_filters=or_filters,
+		fields=[
+			"name", "customer", "package_item", "cost_center", "status", "sessions_total",
+			"sessions_used", "sessions_remaining", "expiry_date", "sales_invoice",
+		],
+		order_by="creation desc",
+		limit_page_length=100,
 	)
+	for sub in subs:
+		sub["customer_name"] = frappe.db.get_value("Customer", sub.customer, "customer_name") or sub.customer
+		sub["package_name"] = frappe.db.get_value("Item", sub.package_item, "item_name") or sub.package_item
 	return {"packages": packages, "subscriptions": subs}
 
 
@@ -751,3 +784,64 @@ def create_quick_booking(customer, salon_stylist, booking_datetime, item, cost_c
 	doc.append("services", {"item": item, "qty": 1})
 	doc.insert()
 	return doc.name
+
+
+@frappe.whitelist()
+def get_item_details(item_code):
+	"""Everything the Services / Packages item popup shows, read-only."""
+	require_salon_role()
+	item = frappe.get_doc("Item", item_code)
+
+	prices = frappe.get_all(
+		"Item Price",
+		filters={"item_code": item_code},
+		fields=["price_list", "price_list_rate", "currency", "selling", "buying"],
+		order_by="selling desc, price_list asc",
+	)
+
+	recipe = []
+	if frappe.db.exists("Salon Service Recipe", item_code):
+		for c in frappe.get_doc("Salon Service Recipe", item_code).consumables:
+			recipe.append(
+				{
+					"item_code": c.raw_material,
+					"item_name": frappe.db.get_value("Item", c.raw_material, "item_name") or c.raw_material,
+					"qty": c.qty,
+					"warehouse": c.warehouse,
+				}
+			)
+
+	stock = []
+	if item.is_stock_item:
+		scope = get_user_scope()
+		bins = frappe.get_all(
+			"Bin",
+			filters={"item_code": item_code},
+			fields=["warehouse", "actual_qty", "reserved_qty", "valuation_rate"],
+		)
+		if not scope["is_admin"]:
+			from salon.salon.permissions import get_pos_profile_for_cost_center
+
+			profile = get_pos_profile_for_cost_center(scope["cost_center"])
+			own_wh = frappe.db.get_value("POS Profile", profile, "warehouse") if profile else None
+			bins = [b for b in bins if b.warehouse == own_wh]
+		stock = bins
+
+	return {
+		"item_code": item.item_code,
+		"item_name": item.item_name,
+		"item_group": item.item_group,
+		"description": item.description,
+		"stock_uom": item.stock_uom,
+		"brand": item.get("brand"),
+		"image": item.image,
+		"is_stock_item": item.is_stock_item,
+		"is_sales_item": item.is_sales_item,
+		"is_purchase_item": item.is_purchase_item,
+		"disabled": item.disabled,
+		"package_sessions": item.get("custom_package_sessions"),
+		"package_validity_days": item.get("custom_package_validity_days"),
+		"prices": prices,
+		"recipe": recipe,
+		"stock": stock,
+	}
