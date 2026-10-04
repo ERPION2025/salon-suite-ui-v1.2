@@ -50,16 +50,17 @@ def make_sales_invoice(customer, cost_center, items, before_submit=None):
 		si.selling_price_list = pos_profile.selling_price_list
 	si.set_warehouse = pos_profile.warehouse
 	for row in items:
-		si.append(
-			"items",
-			{
-				"item_code": row["item_code"],
-				"qty": row.get("qty") or 1,
-				"rate": row.get("rate") or 0,
-				"cost_center": cost_center,
-				"warehouse": pos_profile.warehouse,
-			},
-		)
+		line = {
+			"item_code": row["item_code"],
+			"qty": row.get("qty") or 1,
+			"rate": row.get("rate") or 0,
+			"cost_center": cost_center,
+			"warehouse": pos_profile.warehouse,
+		}
+		# e.g. gift cards book their sale to a liability account, not income
+		if row.get("income_account"):
+			line["income_account"] = row["income_account"]
+		si.append("items", line)
 	# Products sold over the counter (stock items) leave the branch's store
 	# room with the invoice, the same way the POS register handles them.
 	if any(frappe.get_cached_value("Item", row["item_code"], "is_stock_item") for row in items):

@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="robots" content="noindex">
+	<title>{{ title or "Salon Suite — Sign in" }}</title>
+	<link rel="stylesheet" href="/assets/frappe/css/fonts/inter/inter.css">
+	<link rel="stylesheet" href="/assets/salon/css/salon_public.css">
+	<script>window.frappe = window.frappe || {};</script>
+	<!-- csrf_token -->
+</head>
+<body>
+	<div class="sp-wrap">
+		<aside class="sp-brand">
+			<div class="sp-logo"><span class="sp-logo-dot"></span>Salon Suite</div>
+			<div>
+				<h1>Every booking, client and bill in one place.</h1>
+				<p>Sign in to run your salon — appointments, POS billing, stock, staff and reports.</p>
+			</div>
+			<div class="sp-brand-foot">{{ company or "" }}</div>
+		</aside>
+
+		<main class="sp-main">
+			<div class="sp-card">
+				<!-- Sign in -->
+				<form id="sp-login" novalidate>
+					<h2>Welcome back</h2>
+					<p class="sp-sub">Sign in with your work email.</p>
+					<div class="sp-msg" id="sp-login-msg" role="alert"></div>
+					<div class="sp-field">
+						<label for="sp-usr">Email</label>
+						<input class="sp-input" id="sp-usr" type="text" autocomplete="username" placeholder="you@salon.com" required autofocus>
+					</div>
+					<div class="sp-field">
+						<label for="sp-pwd">Password</label>
+						<div class="sp-pass">
+							<input class="sp-input" id="sp-pwd" type="password" autocomplete="current-password" placeholder="••••••••" required>
+							<button type="button" class="sp-pass-toggle" id="sp-toggle">Show</button>
+						</div>
+					</div>
+					<div class="sp-row">
+						<span></span>
+						<a href="#" id="sp-show-forgot">Forgot password?</a>
+					</div>
+					<button class="sp-btn" type="submit" id="sp-login-btn">Sign in</button>
+				</form>
+
+				<!-- Forgot password -->
+				<form id="sp-forgot" novalidate style="display:none">
+					<h2>Reset password</h2>
+					<p class="sp-sub">We'll email you a link to set a new password.</p>
+					<div class="sp-msg" id="sp-forgot-msg" role="alert"></div>
+					<div class="sp-field">
+						<label for="sp-forgot-email">Email</label>
+						<input class="sp-input" id="sp-forgot-email" type="email" autocomplete="email" placeholder="you@salon.com" required>
+					</div>
+					<button class="sp-btn" type="submit" id="sp-forgot-btn">Send reset link</button>
+					<div class="sp-foot"><a href="#" id="sp-show-login">Back to sign in</a></div>
+				</form>
+
+				<div class="sp-foot">Clients can book online at <a href="/book">/book</a></div>
+			</div>
+		</main>
+	</div>
+
+	<script>
+	(function () {
+		var $ = function (id) { return document.getElementById(id); };
+		var csrf = (window.frappe && window.frappe.csrf_token) || '';
+		var params = new URLSearchParams(window.location.search);
+
+		function msg(el, text, kind) {
+			el.textContent = text || '';
+			el.className = 'sp-msg' + (text ? ' ' + (kind || 'error') : '');
+		}
+
+		function post(method, body) {
+			var headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+			if (csrf) headers['X-Frappe-CSRF-Token'] = csrf;
+			return fetch('/api/method/' + method, {
+				method: 'POST', headers: headers, credentials: 'same-origin', body: JSON.stringify(body || {})
+			}).then(function (r) {
+				return r.json().catch(function () { return {}; }).then(function (data) { return { ok: r.ok, data: data }; });
+			});
+		}
+
+		function server_message(data, fallback) {
+			if (data && data._server_messages) {
+				try {
+					var m = JSON.parse(JSON.parse(data._server_messages)[0]);
+					return (m.message || '').replace(/<[^>]+>/g, '');
+				} catch (e) {}
+			}
+			return (data && typeof data.message === 'string' && data.message) || fallback;
+		}
+
+		$('sp-toggle').addEventListener('click', function () {
+			var p = $('sp-pwd');
+			p.type = p.type === 'password' ? 'text' : 'password';
+			this.textContent = p.type === 'password' ? 'Show' : 'Hide';
+		});
+
+		$('sp-show-forgot').addEventListener('click', function (e) {
+			e.preventDefault();
+			$('sp-login').style.display = 'none';
+			$('sp-forgot').style.display = '';
+			$('sp-forgot-email').value = $('sp-usr').value;
+			$('sp-forgot-email').focus();
+		});
+		$('sp-show-login').addEventListener('click', function (e) {
+			e.preventDefault();
+			$('sp-forgot').style.display = 'none';
+			$('sp-login').style.display = '';
+		});
+
+		$('sp-login').addEventListener('submit', function (e) {
+			e.preventDefault();
+			var usr = $('sp-usr').value.trim(), pwd = $('sp-pwd').value;
+			var box = $('sp-login-msg'), btn = $('sp-login-btn');
+			if (!usr || !pwd) { msg(box, 'Enter your email and password.'); return; }
+			msg(box, '');
+			btn.disabled = true; btn.textContent = 'Signing in…';
+			post('login', { usr: usr, pwd: pwd }).then(function (res) {
+				if (!res.ok || (res.data && res.data.verification)) {
+					btn.disabled = false; btn.textContent = 'Sign in';
+					if (res.data && res.data.verification) {
+						msg(box, 'Two-factor sign-in is enabled for this account. Please contact your administrator.');
+					} else {
+						msg(box, res.data && res.data.message === 'Invalid Login. Try again.'
+							? 'Wrong email or password.'
+							: server_message(res.data, 'Sign in failed. Please try again.'));
+					}
+					return;
+				}
+				var fallback = (res.data && res.data.home_page) || '/app';
+				fetch('/api/method/salon.auth.get_landing_page?redirect_to=' + encodeURIComponent(params.get('redirect-to') || ''),
+					{ credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+					.then(function (r) { return r.json(); })
+					.then(function (d) { window.location.href = (d && d.message) || fallback; })
+					.catch(function () { window.location.href = fallback; });
+			}).catch(function () {
+				btn.disabled = false; btn.textContent = 'Sign in';
+				msg(box, 'Network error — please try again.');
+			});
+		});
+
+		$('sp-forgot').addEventListener('submit', function (e) {
+			e.preventDefault();
+			var email = $('sp-forgot-email').value.trim(), box = $('sp-forgot-msg'), btn = $('sp-forgot-btn');
+			if (!email) { msg(box, 'Enter your email.'); return; }
+			btn.disabled = true;
+			post('frappe.core.doctype.user.user.reset_password', { user: email }).then(function (res) {
+				btn.disabled = false;
+				if (res.ok) msg(box, 'If that email has an account, a reset link is on its way.', 'ok');
+				else msg(box, server_message(res.data, 'Could not send the reset link.'));
+			});
+		});
+	})();
+	</script>
+</body>
+</html>

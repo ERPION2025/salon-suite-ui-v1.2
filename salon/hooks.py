@@ -52,3 +52,10 @@ fixtures = ["Custom Field"]
 # reruns safely on every migrate. See salon/setup.py for why this isn't
 # a fixture (Custom DocPerm autonames via an unpredictable hash).
 after_migrate = "salon.setup.after_migrate"
+
+# Booking reminders (email / SMS) for appointments in the next 24 hours,
+# gift-card expiry. See salon/notifications.py and salon/gift_cards.py.
+scheduler_events = {
+	"hourly": ["salon.notifications.send_due_reminders"],
+	"daily": ["salon.gift_cards.expire_gift_cards"],
+}

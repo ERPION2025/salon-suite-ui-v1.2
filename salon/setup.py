@@ -63,6 +63,15 @@ def after_migrate():
 	except Exception:
 		frappe.log_error(title="Salon Suite: could not create purchase items")
 
+	# Gift cards: item, item group and the Gift Card Liability account per
+	# company. Same rule - never block a deploy.
+	try:
+		from salon.gift_cards import ensure_gift_card_setup
+
+		ensure_gift_card_setup()
+	except Exception:
+		frappe.log_error(title="Salon Suite: could not set up gift cards")
+
 
 def create_roles():
 	for role in SALON_ROLES:

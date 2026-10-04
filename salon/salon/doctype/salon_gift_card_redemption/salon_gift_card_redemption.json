@@ -1,0 +1,16 @@
+{
+ "doctype": "DocType",
+ "name": "Salon Gift Card Redemption",
+ "module": "Salon",
+ "custom": 0,
+ "istable": 1,
+ "engine": "InnoDB",
+ "field_order": ["posting_date", "sales_invoice", "journal_entry", "amount"],
+ "fields": [
+  {"fieldname": "posting_date", "label": "Date", "fieldtype": "Date", "in_list_view": 1},
+  {"fieldname": "sales_invoice", "label": "Sales Invoice", "fieldtype": "Link", "options": "Sales Invoice", "in_list_view": 1},
+  {"fieldname": "journal_entry", "label": "Journal Entry", "fieldtype": "Link", "options": "Journal Entry", "in_list_view": 1},
+  {"fieldname": "amount", "label": "Amount", "fieldtype": "Currency", "in_list_view": 1}
+ ],
+ "permissions": []
+}

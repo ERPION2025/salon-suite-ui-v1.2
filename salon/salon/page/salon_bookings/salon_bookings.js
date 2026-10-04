@@ -33,6 +33,7 @@ class SalonBookings {
 							<button class="btn btn-default btn-sm" data-nav="next" title="${__('Next day')}">&rarr;</button>
 							<button class="btn btn-default btn-sm" data-nav="all">${__('All dates')}</button>
 							<span class="salon-branch-slot"></span>
+							<a class="btn btn-default btn-sm" href="/book" target="_blank" rel="noopener" title="${__('Public page clients use to book online')}">${__('Online booking')} ↗</a>
 							<button class="btn btn-primary salon-cal-new" id="salon-new-booking">+ ${__('New Booking')}</button>
 						</div>
 					</header>
