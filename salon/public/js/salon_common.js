@@ -112,9 +112,13 @@ window.salon_common = {
 					})
 					.join('');
 				if (!links) return '';
+				// "Accounts — ERPNext" -> heading "Accounts" + a small "ERPNext" tag.
+				const [heading, source] = group.title.split(' — ');
 				return `
 					<div class="salon-nav-group">
-						<div class="salon-nav-group-title">${group.title}</div>
+						<div class="salon-nav-group-title">${heading}${
+							source ? `<span class="salon-nav-group-source">${source}</span>` : ''
+						}</div>
 						<nav>${links}</nav>
 					</div>
 				`;

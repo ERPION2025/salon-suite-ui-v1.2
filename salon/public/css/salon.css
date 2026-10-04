@@ -1654,3 +1654,68 @@ body.salon-on-pos .point-of-sale-app .grand-total-value {
 	font-size: 12px;
 	white-space: nowrap;
 }
+
+/* ============================================================
+   Sidebar menu: clear section headings with separators.
+   ============================================================ */
+.salon-brand {
+	padding: 0 10px 14px;
+	margin-bottom: 12px;
+	border-bottom: 1px solid #eeeeee;
+}
+.salon-nav-group {
+	margin: 0;
+	padding: 10px 0;
+}
+.salon-nav-group + .salon-nav-group {
+	border-top: 1px solid #eeeeee;
+}
+.salon-brand + .salon-nav-group {
+	padding-top: 0;
+}
+.salon-nav-group-title {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 0 10px 6px;
+	font-size: 11px;
+	font-weight: 700;
+	line-height: 1.2;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: #1a1a1a;
+}
+.salon-nav-group-title::before {
+	content: '';
+	width: 3px;
+	height: 12px;
+	border-radius: 2px;
+	background: #e4002b;
+	flex-shrink: 0;
+}
+.salon-nav-group-source {
+	margin-left: auto;
+	padding: 1px 6px;
+	border-radius: 4px;
+	background: #f5f5f5;
+	color: #9a9a9a;
+	font-size: 9px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+}
+.salon-sidebar nav {
+	gap: 1px;
+}
+.salon-sidebar nav a {
+	padding: 5px 10px 5px 21px;
+	color: #4a4a4a;
+}
+.salon-sidebar nav a:hover {
+	background: #f7f7f7;
+	color: #1a1a1a;
+}
+.salon-sidebar nav a.active {
+	background: #fdeaee;
+	color: #e4002b;
+	font-weight: 600;
+}
