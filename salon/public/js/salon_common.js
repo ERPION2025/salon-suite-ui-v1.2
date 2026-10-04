@@ -1,5 +1,48 @@
+// Module icons (flat, two-tone, salon red palette) for the app grid,
+// module top bar and menu drawer. 48x48 viewBox, scaled by CSS.
+const SALON_ICONS = {
+	dashboard:
+		'<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="6" y="6" width="16" height="16" rx="4" fill="#e4002b"/><rect x="26" y="6" width="16" height="16" rx="8" fill="#f7a6b6"/><rect x="6" y="26" width="16" height="16" rx="4" fill="#f7a6b6"/><rect x="26" y="26" width="16" height="16" rx="4" fill="#8c001a"/></svg>',
+	calendar:
+		'<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="6" y="10" width="36" height="32" rx="5" fill="#f7a6b6"/><path d="M6 15a5 5 0 0 1 5-5h26a5 5 0 0 1 5 5v5H6z" fill="#e4002b"/><rect x="14" y="5" width="4" height="10" rx="2" fill="#2b2b2b"/><rect x="30" y="5" width="4" height="10" rx="2" fill="#2b2b2b"/><rect x="12" y="25" width="7" height="6" rx="1.5" fill="#8c001a"/><rect x="21" y="25" width="7" height="6" rx="1.5" fill="#ffffff"/><rect x="30" y="25" width="7" height="6" rx="1.5" fill="#ffffff"/><rect x="12" y="33" width="7" height="5" rx="1.5" fill="#ffffff"/><rect x="21" y="33" width="7" height="5" rx="1.5" fill="#ffffff"/></svg>',
+	bookings:
+		'<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="9" y="8" width="30" height="34" rx="4" fill="#f7a6b6"/><rect x="17" y="5" width="14" height="7" rx="3" fill="#e4002b"/><rect x="14" y="18" width="20" height="3" rx="1.5" fill="#8c001a"/><rect x="14" y="25" width="20" height="3" rx="1.5" fill="#ffffff"/><rect x="14" y="32" width="13" height="3" rx="1.5" fill="#ffffff"/><circle cx="35" cy="36" r="7" fill="#e4002b"/><path d="M32 36l2 2 4-4" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+	clients:
+		'<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="18" cy="16" r="7" fill="#e4002b"/><path d="M5 40c0-8 6-13 13-13s13 5 13 13z" fill="#e4002b"/><circle cx="32" cy="18" r="6" fill="#8c001a"/><path d="M24 40c0-7 4-11 9-11s10 4 10 11z" fill="#f7a6b6"/></svg>',
+	loyalty:
+		'<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 5l5.6 11.4 12.6 1.8-9.1 8.9 2.1 12.5L24 33.7l-11.2 5.9 2.1-12.5-9.1-8.9 12.6-1.8z" fill="#e4002b"/><path d="M24 14l3 6.2 6.8 1-4.9 4.8 1.2 6.8-6.1-3.2-6.1 3.2 1.2-6.8-4.9-4.8 6.8-1z" fill="#f7a6b6"/></svg>',
+	packages:
+		'<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 5l17 9v20l-17 9-17-9V14z" fill="#f7a6b6"/><path d="M24 23v20l-17-9V14z" fill="#e4002b"/><path d="M24 23l17-9v20l-17 9z" fill="#8c001a"/><path d="M15.5 9.5l17 9" stroke="#ffffff" stroke-width="3"/></svg>',
+	services:
+		'<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="13" cy="35" r="6" fill="none" stroke="#e4002b" stroke-width="4"/><circle cx="35" cy="35" r="6" fill="none" stroke="#8c001a" stroke-width="4"/><path d="M17 31L36 6" stroke="#e4002b" stroke-width="4" stroke-linecap="round"/><path d="M31 31L12 6" stroke="#8c001a" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="22" r="2.5" fill="#2b2b2b"/></svg>',
+	'gift-cards':
+		'<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="5" y="12" width="38" height="26" rx="5" fill="#f7a6b6"/><rect x="16" y="12" width="6" height="26" fill="#e4002b"/><rect x="5" y="22" width="38" height="5" fill="#e4002b"/><path d="M19 12c-5-6-11-1-6 3zM19 12c5-6 11-1 6 3z" fill="#8c001a"/></svg>',
+	pos: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M10 5h28v36l-4.7-3-4.6 3-4.7-3-4.6 3-4.7-3L10 41z" fill="#f7a6b6"/><rect x="15" y="12" width="18" height="3" rx="1.5" fill="#8c001a"/><rect x="15" y="19" width="12" height="3" rx="1.5" fill="#ffffff"/><rect x="15" y="26" width="18" height="5" rx="2" fill="#e4002b"/></svg>',
+	'pos-profiles':
+		'<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="7" width="34" height="22" rx="4" fill="#2b2b2b"/><rect x="11" y="11" width="26" height="14" rx="2" fill="#f7a6b6"/><path d="M17 29h14l3 7H14z" fill="#8c001a"/><rect x="8" y="36" width="32" height="6" rx="3" fill="#e4002b"/></svg>',
+	gl: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="8" y="6" width="30" height="36" rx="4" fill="#e4002b"/><rect x="13" y="6" width="25" height="36" rx="3" fill="#f7a6b6"/><rect x="18" y="14" width="15" height="3" rx="1.5" fill="#8c001a"/><rect x="18" y="21" width="15" height="3" rx="1.5" fill="#ffffff"/><rect x="18" y="28" width="10" height="3" rx="1.5" fill="#ffffff"/></svg>',
+	stock:
+		'<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="6" y="24" width="17" height="17" rx="3" fill="#e4002b"/><rect x="25" y="24" width="17" height="17" rx="3" fill="#8c001a"/><rect x="15" y="7" width="17" height="17" rx="3" fill="#f7a6b6"/><rect x="12" y="24" width="5" height="5" fill="#ffffff" opacity=".6"/><rect x="31" y="24" width="5" height="5" fill="#ffffff" opacity=".5"/><rect x="21" y="7" width="5" height="5" fill="#ffffff" opacity=".7"/></svg>',
+	purchases:
+		'<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M9 16h30l-2.5 24a3 3 0 0 1-3 2.7H14.5a3 3 0 0 1-3-2.7z" fill="#f7a6b6"/><path d="M17 20v-6a7 7 0 0 1 14 0v6" stroke="#e4002b" stroke-width="4" fill="none" stroke-linecap="round"/><rect x="9" y="16" width="30" height="6" rx="2" fill="#8c001a" opacity=".85"/></svg>',
+	stylists:
+		'<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="22" cy="15" r="9" fill="#e4002b"/><path d="M6 42c0-9 7-15 16-15s16 6 16 15z" fill="#f7a6b6"/><rect x="31" y="5" width="12" height="18" rx="3" fill="#8c001a"/><rect x="34" y="9" width="2" height="10" fill="#ffffff"/><rect x="38" y="9" width="2" height="10" fill="#ffffff"/></svg>',
+	attendance:
+		'<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="22" cy="24" r="17" fill="#f7a6b6"/><path d="M22 13v12l8 5" stroke="#8c001a" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="36" cy="36" r="8" fill="#e4002b"/><path d="M32.5 36l2.5 2.5 4-4.5" stroke="#ffffff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+	leave:
+		'<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M5 22a19 17 0 0 1 38 0z" fill="#e4002b"/><path d="M5 22a19 17 0 0 1 19-17c-6 4-8 10-8 17z" fill="#f7a6b6"/><path d="M24 22v14a4 4 0 0 1-8 0" stroke="#2b2b2b" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M24 22c0-7-2-13-0-17 2 4 0 10 0 17z" fill="#8c001a"/></svg>',
+	payroll:
+		'<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="4" y="12" width="34" height="22" rx="4" fill="#f7a6b6"/><circle cx="21" cy="23" r="5.5" fill="#8c001a"/><circle cx="35" cy="34" r="9" fill="#e4002b"/><path d="M35 29v10M32 31.5h4.5a1.8 1.8 0 0 1 0 3.5h-3a1.8 1.8 0 0 0 0 3.5H38" stroke="#ffffff" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>',
+	pnl: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="26" width="8" height="15" rx="2" fill="#f7a6b6"/><rect x="20" y="17" width="8" height="24" rx="2" fill="#8c001a"/><rect x="33" y="8" width="8" height="33" rx="2" fill="#e4002b"/><path d="M8 18l11-8 9 5 12-9" stroke="#2b2b2b" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+	reports:
+		'<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="18" fill="#f7a6b6"/><path d="M24 24V6a18 18 0 0 1 17.1 23.6z" fill="#e4002b"/><path d="M24 24l17.1 5.6A18 18 0 0 1 30 41z" fill="#8c001a"/><circle cx="24" cy="24" r="7" fill="#ffffff"/></svg>',
+	online:
+		'<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="12" y="4" width="24" height="40" rx="5" fill="#2b2b2b"/><rect x="15" y="9" width="18" height="28" rx="2" fill="#f7a6b6"/><circle cx="24" cy="23" r="7" fill="#e4002b"/><path d="M21 23l2.2 2.2L27.5 21" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><rect x="21" y="39.5" width="6" height="2" rx="1" fill="#ffffff"/></svg>',
+};
+
 // Every custom Salon Suite page (Desk Page name == route segment).
 const SALON_PAGES = [
+	'salon-home',
 	'salon-dashboard',
 	'salon-calendar',
 	'salon-bookings',
@@ -25,7 +68,7 @@ const SALON_MANAGER_PAGES = ['salon-pos-profiles'];
 
 // The only places a Salon User (without System Manager) may go. Anything
 // else under /app - doctype lists/forms, reports, workspaces, settings -
-// bounces back to the Salon Dashboard.
+// bounces back to the Salon Suite home (module grid).
 const SALON_USER_ALLOWED_ROUTES = SALON_PAGES.concat(['point-of-sale']);
 
 window.salon_common = {
@@ -36,7 +79,8 @@ window.salon_common = {
 				{ key: 'dashboard', label: 'Dashboard', href: '/app/salon-dashboard' },
 				{ key: 'calendar', label: 'Calendar', href: '/app/salon-calendar' },
 				{ key: 'bookings', label: 'Bookings', href: '/app/salon-bookings' },
-				{ key: 'clients', label: 'Clients (CRM)', href: '/app/salon-client-360' },
+				{ key: 'clients', label: 'Clients (CRM)', tile: 'Clients', href: '/app/salon-client-360' },
+				{ key: 'online', label: 'Online Booking', href: '/book', external: true },
 			],
 		},
 		{
@@ -54,6 +98,7 @@ window.salon_common = {
 				{
 					key: 'pos',
 					label: 'POS & Invoicing',
+					tile: 'POS & Billing',
 					// Always the native POS register — never the raw Sales
 					// Invoice list, for any role, for now.
 					href: '/app/point-of-sale',
@@ -70,24 +115,24 @@ window.salon_common = {
 		{
 			title: 'Inventory — ERPNext',
 			items: [
-				{ key: 'stock', label: 'Stock & Consumables', href: '/app/salon-stock' },
+				{ key: 'stock', label: 'Stock & Consumables', tile: 'Stock', href: '/app/salon-stock' },
 				{ key: 'purchases', label: 'Purchases', href: '/app/salon-purchases' },
 			],
 		},
 		{
 			title: 'HR & Payroll — ERPNext',
 			items: [
-				{ key: 'stylists', label: 'Stylists / Employees', href: '/app/salon-stylists' },
+				{ key: 'stylists', label: 'Stylists / Employees', tile: 'Stylists', href: '/app/salon-stylists' },
 				{ key: 'attendance', label: 'Attendance', href: '/app/salon-attendance' },
 				{ key: 'leave', label: 'Leave', href: '/app/salon-leave' },
-				{ key: 'payroll', label: 'Payroll & Commissions', href: '/app/salon-payroll' },
+				{ key: 'payroll', label: 'Payroll & Commissions', tile: 'Payroll', href: '/app/salon-payroll' },
 			],
 		},
 		{
 			title: 'Finance — ERPNext',
 			items: [
 				{ key: 'pnl', label: 'P&L by Branch', href: '/app/salon-pnl' },
-				{ key: 'reports', label: 'Reports & Analytics', href: '/app/salon-reports' },
+				{ key: 'reports', label: 'Reports & Analytics', tile: 'Reports', href: '/app/salon-reports' },
 			],
 		},
 	],
@@ -110,15 +155,90 @@ window.salon_common = {
 		return SALON_USER_ALLOWED_ROUTES.includes(page);
 	},
 
+	// Order of tiles on the home grid (keys of nav items).
+	TILE_ORDER: [
+		'dashboard',
+		'calendar',
+		'bookings',
+		'clients',
+		'online',
+		'services',
+		'packages',
+		'loyalty',
+		'gift-cards',
+		'pos',
+		'pos-profiles',
+		'gl',
+		'stock',
+		'purchases',
+		'stylists',
+		'attendance',
+		'leave',
+		'payroll',
+		'pnl',
+		'reports',
+	],
+
+	icon(key) {
+		return SALON_ICONS[key] || SALON_ICONS.dashboard;
+	},
+
+	allowed(item) {
+		return !item.roles || item.roles.some((r) => (frappe.user_roles || []).includes(r));
+	},
+
+	all_items() {
+		return [].concat(...this.nav_groups.map((g) => g.items)).filter((i) => this.allowed(i));
+	},
+
+	// Modules the current user can open, in grid order.
+	tiles() {
+		const items = this.all_items();
+		return this.TILE_ORDER.map((k) => items.find((i) => i.key === k)).filter(Boolean);
+	},
+
+	link_attrs(item) {
+		const href = typeof item.href === 'function' ? item.href() : item.href;
+		return item.external ? `href="${href}" target="_blank" rel="noopener"` : `href="${href}"`;
+	},
+
+	initials() {
+		const n = (frappe.session.user_fullname || frappe.session.user || '?').trim();
+		return n.charAt(0).toUpperCase();
+	},
+
+	// Avatar button + dropdown (name, branch, Open ERPNext, Log out). Shared
+	// by the home grid and the module top bar.
+	render_user_menu() {
+		const esc = frappe.utils.escape_html;
+		const name = esc(frappe.session.user_fullname || frappe.session.user);
+		return `
+			<span class="salon-top-branch" title="${__('Branch')}"></span>
+			<div class="salon-usermenu">
+				<button class="salon-avatar-btn" data-salon-avatar aria-haspopup="true" title="${name}">${this.initials()}</button>
+				<div class="salon-usermenu-pop" role="menu">
+					<div class="salon-usermenu-head"><b>${name}</b><span class="salon-top-branch-text"></span></div>
+					<a href="/app/salon-home">${__('All modules')}</a>
+					${this.is_salon_only() ? '' : `<a href="/app">${__('Open ERPNext')}</a>`}
+					<a href="#" data-salon-logout>${__('Log out')}</a>
+				</div>
+			</div>`;
+	},
+
+	// Kept under its old name so every page keeps calling it: renders the
+	// module top bar (grid button, Menu button, module name) plus the menu
+	// drawer - the old sidebar, now collapsed behind the Menu button.
 	render_sidebar_html(active_key) {
+		const esc = frappe.utils.escape_html;
 		const groups = this.nav_groups
 			.map((group) => {
 				const links = group.items
-					.filter((item) => !item.roles || item.roles.some((r) => (frappe.user_roles || []).includes(r)))
+					.filter((item) => this.allowed(item))
 					.map((item) => {
 						const cls = item.key === active_key ? 'active' : '';
-						const href = typeof item.href === 'function' ? item.href() : item.href;
-						return `<a class="${cls}" href="${href}">${item.label}</a>`;
+						return `<a class="${cls}" ${this.link_attrs(item)}><span class="salon-nav-ico">${this.icon(
+							item.key,
+						)}</span>${item.label}${item.external ? ' <span class="salon-ext">↗</span>' : ''}</a>`;
 					})
 					.join('');
 				if (!links) return '';
@@ -135,35 +255,64 @@ window.salon_common = {
 			})
 			.join('');
 
-		// The native navbar (and with it the avatar/logout menu) is hidden
-		// on every salon screen, so the sidebar carries the user + logout.
-		const full_name = frappe.utils.escape_html(frappe.session.user_fullname || frappe.session.user);
-		const initial = (full_name || '?').trim().charAt(0).toUpperCase();
-		const desk_link = this.is_salon_only()
-			? ''
-			: `<a class="salon-user-action" href="/app">${__('Open ERPNext')}</a>`;
+		const current = this.all_items().find((i) => i.key === active_key);
+		const title = current ? current.tile || current.label : __('Salon Suite');
+		this.fill_branch_soon();
 
 		return `
-			<aside class="salon-sidebar">
+			<header class="salon-topbar">
+				<a class="salon-icon-btn" href="/app/salon-home" title="${__('All modules')}" aria-label="${__('All modules')}">
+					<svg width="16" height="16" viewBox="0 0 16 16"><g fill="currentColor">${[0, 6, 12]
+						.map((x) =>
+							[0, 6, 12].map((y) => `<rect x="${x}" y="${y}" width="4" height="4" rx="1"/>`).join(''),
+						)
+						.join('')}</g></svg>
+				</a>
+				<button class="salon-menu-btn" data-salon-menu aria-label="${__('Menu')}">
+					<svg width="16" height="16" viewBox="0 0 16 16"><g fill="currentColor"><rect y="2" width="16" height="2" rx="1"/><rect y="7" width="16" height="2" rx="1"/><rect y="12" width="16" height="2" rx="1"/></g></svg>
+					<span>${__('Menu')}</span>
+				</button>
+				<div class="salon-crumb">
+					<span class="salon-crumb-ico">${this.icon(active_key)}</span>
+					<span class="salon-crumb-title">${esc(title)}</span>
+				</div>
+				<div class="salon-topbar-right">${this.render_user_menu()}</div>
+			</header>
+			<div class="salon-scrim" data-salon-menu-close></div>
+			<aside class="salon-sidebar salon-drawer" aria-label="${__('Menu')}">
 				<div class="salon-sidebar-scroll">
 					<div class="salon-brand">
 						<span class="salon-brand-dot"></span>
 						<span>Salon Suite</span>
+						<button class="salon-drawer-close" data-salon-menu-close aria-label="${__('Close menu')}">×</button>
 					</div>
 					${groups}
 				</div>
-				<div class="salon-user">
-					<div class="salon-user-id">
-						<span class="salon-user-avatar">${initial}</span>
-						<span class="salon-user-name">${full_name}</span>
-					</div>
-					<div class="salon-user-actions">
-						${desk_link}
-						<a class="salon-user-action" href="#" data-salon-logout>${__('Log out')}</a>
-					</div>
-				</div>
 			</aside>
 		`;
+	},
+
+	// Branch chip text (same for every screen) - fetched once, then filled
+	// into whatever top bar is on screen.
+	fill_branch_soon() {
+		setTimeout(() => {
+			const apply = (label) => {
+				document.querySelectorAll('.salon-top-branch, .salon-top-branch-text').forEach((el) => {
+					el.textContent = label || '';
+					el.style.display = label ? '' : 'none';
+				});
+			};
+			if (this._branch_label !== undefined) return apply(this._branch_label);
+			if (!this._branch_promise) {
+				this._branch_promise = frappe.call('salon.api.get_branch_options').then((r) => {
+					const d = r.message || { branches: [] };
+					this._branch_label = d.is_admin
+						? __('All branches')
+						: ((d.branches[0] && d.branches[0].name) || '').replace(/ - [^-]+$/, '');
+				});
+			}
+			this._branch_promise.then(() => apply(this._branch_label));
+		}, 0);
 	},
 
 	// Documents that open in a salon popup instead of a native form.
@@ -715,7 +864,7 @@ $(() => {
 				document.body.classList.add('salon-route-ok');
 			} else {
 				document.body.classList.remove('salon-route-ok');
-				frappe.set_route('salon-dashboard');
+				frappe.set_route('salon-home');
 			}
 		}
 	};
@@ -728,13 +877,74 @@ $(() => {
 	const just_logged_in = /\/login(\?|$|#)/.test(document.referrer || '');
 	const first_page = current_page();
 	if (has_salon_role && just_logged_in && ['', 'home', 'workspaces', 'app'].includes(first_page)) {
-		frappe.set_route('salon-dashboard');
+		frappe.set_route('salon-home');
 	}
 
 	frappe.router.on('change', on_route);
 	on_route();
 
 	// Sidebar logout (the native avatar menu is hidden on salon screens).
+	// Phones: every table becomes a stack of cards (salon.css); each cell
+	// gets its column name as data-label so the card can label the value.
+	const label_tables = () => {
+		document.querySelectorAll('.salon-shell table.salon-table').forEach((table) => {
+			const heads = [...table.querySelectorAll('thead th')]
+				.filter((th) => th.style.display !== 'none')
+				.map((th) => th.textContent.trim());
+			if (!heads.length) return;
+			table.querySelectorAll('tbody tr').forEach((tr) => {
+				let col = 0;
+				[...tr.children].forEach((td) => {
+					const span = parseInt(td.getAttribute('colspan') || '1', 10);
+					if (span === 1 && heads[col] !== undefined) td.setAttribute('data-label', heads[col]);
+					// One value element per cell, so the card row is "label | value".
+					if (span === 1 && td.childNodes.length > 1 && !td.querySelector(':scope > .cell-val')) {
+						const wrap = document.createElement('span');
+						wrap.className = 'cell-val';
+						while (td.firstChild) wrap.appendChild(td.firstChild);
+						td.appendChild(wrap);
+					}
+					col += span;
+				});
+			});
+		});
+	};
+	let label_timer = null;
+	new MutationObserver(() => {
+		clearTimeout(label_timer);
+		label_timer = setTimeout(label_tables, 60);
+	}).observe(document.body, { childList: true, subtree: true });
+
+	// Menu drawer (the collapsed sidebar) and the avatar menu.
+	const close_menus = () => {
+		document.body.classList.remove('salon-menu-open');
+		document.querySelectorAll('.salon-usermenu.open').forEach((el) => el.classList.remove('open'));
+	};
+	$(document).on('click', '[data-salon-menu]', (e) => {
+		e.preventDefault();
+		document.body.classList.toggle('salon-menu-open');
+	});
+	$(document).on('click', '[data-salon-menu-close]', (e) => {
+		e.preventDefault();
+		document.body.classList.remove('salon-menu-open');
+	});
+	$(document).on('click', '.salon-drawer nav a', () => document.body.classList.remove('salon-menu-open'));
+	$(document).on('click', '[data-salon-avatar]', (e) => {
+		e.preventDefault();
+		e.stopPropagation();
+		const menu = e.currentTarget.closest('.salon-usermenu');
+		const open = !menu.classList.contains('open');
+		close_menus();
+		menu.classList.toggle('open', open);
+	});
+	$(document).on('click', (e) => {
+		if (!e.target.closest('.salon-usermenu')) {
+			document.querySelectorAll('.salon-usermenu.open').forEach((el) => el.classList.remove('open'));
+		}
+	});
+	$(document).on('keydown', (e) => e.key === 'Escape' && close_menus());
+	frappe.router.on('change', close_menus);
+
 	$(document).on('click', '[data-salon-logout]', (e) => {
 		e.preventDefault();
 		frappe.app.logout();
@@ -788,7 +998,7 @@ $(() => {
 	if (!document.querySelector('.salon-pos-back')) {
 		const back = document.createElement('a');
 		back.className = 'salon-pos-back';
-		back.href = '/app/salon-dashboard';
+		back.href = '/app/salon-home';
 		back.textContent = '← ' + __('Salon Suite');
 		document.body.appendChild(back);
 	}

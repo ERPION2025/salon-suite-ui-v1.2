@@ -1,6 +1,6 @@
 """Salon Suite login landing.
 
-Anyone holding Salon User or Salon Manager lands on the Salon Dashboard
+Anyone holding Salon User or Salon Manager lands on the Salon Suite home (module grid)
 after logging in (System Managers with a salon role too - they can still
 reach ERPNext from the sidebar's "Open ERPNext"). Everyone else keeps
 Frappe's normal landing page.
@@ -14,7 +14,7 @@ other login path.
 import frappe
 from frappe.utils import cstr
 
-SALON_HOME = "/app/salon-dashboard"
+SALON_HOME = "/app/salon-home"
 SALON_ROLES = ("Salon User", "Salon Manager")
 
 

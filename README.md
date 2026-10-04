@@ -174,6 +174,19 @@ Covers:
   stylists (with commission), branches, payment mix, booking statuses and
   top clients — today / 7 days / this month / last month / custom, per
   branch.
+- **App grid home** (`/app/salon-home`) — after login salon staff land on
+  a module grid (Odoo-style tiles, salon icons, module search, branch chip,
+  avatar menu with Open ERPNext / Log out). Each tile opens its custom
+  screen; manager-only modules are hidden from Salon Users; Online Booking
+  opens `/book` in a new tab.
+- **Module top bar + Menu drawer** — every screen is full width with a
+  slim top bar: grid button (back to home), **Menu** button (the old
+  sidebar, now an overlay drawer), module icon + name, branch and avatar.
+- **Mobile responsive** — all suite screens, popups and reports adapt to
+  phones: tables turn into labelled cards (column names are attached to
+  each cell automatically), toolbars and page heads stack, KPI tiles go
+  two-up, report panels single column, the calendar scrolls inside its
+  own box, and the grid shows four tiles per row.
 - **Client preferences** — `Customer` gained 6 Custom Fields (stylist
   preference, color formula, allergies, birthday — see
   `salon/fixtures/custom_field.json`) backing Client 360's Preferences

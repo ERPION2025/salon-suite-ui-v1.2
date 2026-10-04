@@ -2023,3 +2023,659 @@ body.salon-on-pos .point-of-sale-app .grand-total-value {
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 	font-family: var(--font-stack, 'Inter', sans-serif);
 }
+
+/* ============================================================
+   App shell v2: module top bar + menu drawer (no fixed sidebar)
+   ------------------------------------------------------------
+   Every screen: [grid] [☰ Menu] [icon Module]  ……  [branch] [avatar]
+   The old sidebar is the drawer behind the Menu button; the screen
+   itself uses the full width.
+   ============================================================ */
+.salon-shell {
+	flex-direction: column;
+}
+.salon-shell > .salon-main {
+	flex: 1;
+	height: auto;
+	min-height: 0;
+}
+.salon-topbar {
+	flex-shrink: 0;
+	height: 52px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 0 20px;
+	background: #fff;
+	border-bottom: 1px solid #eee;
+	position: relative;
+	z-index: 5;
+}
+.salon-icon-btn,
+.salon-menu-btn {
+	height: 34px;
+	border-radius: 8px;
+	border: 1px solid #eee;
+	background: #fff;
+	color: #4a4a4a;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	cursor: pointer;
+	text-decoration: none !important;
+	font-size: 13px;
+	flex-shrink: 0;
+}
+.salon-icon-btn {
+	width: 34px;
+}
+.salon-menu-btn {
+	padding: 0 12px;
+}
+.salon-icon-btn:hover,
+.salon-menu-btn:hover {
+	border-color: #e4002b;
+	color: #e4002b;
+}
+.salon-crumb {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-width: 0;
+	margin-left: 4px;
+	font-size: 15px;
+	font-weight: 600;
+	color: #1a1a1a;
+}
+.salon-crumb-ico {
+	width: 28px;
+	height: 28px;
+	border-radius: 7px;
+	border: 1px solid #f0f0f0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+.salon-crumb-ico svg {
+	width: 20px;
+	height: 20px;
+}
+.salon-crumb-title {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.salon-topbar-right {
+	margin-left: auto;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-shrink: 0;
+}
+.salon-top-branch {
+	padding: 4px 10px;
+	border-radius: 999px;
+	background: #fafafa;
+	border: 1px solid #eee;
+	font-size: 12px;
+	color: #4a4a4a;
+	white-space: nowrap;
+}
+.salon-top-branch:empty {
+	display: none;
+}
+.salon-usermenu {
+	position: relative;
+}
+.salon-avatar-btn {
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	border: none;
+	background: #e4002b;
+	color: #fff;
+	font-weight: 600;
+	font-size: 13px;
+	cursor: pointer;
+}
+.salon-usermenu-pop {
+	display: none;
+	position: absolute;
+	right: 0;
+	top: calc(100% + 8px);
+	min-width: 220px;
+	background: #fff;
+	border: 1px solid #eee;
+	border-radius: 10px;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+	padding: 6px;
+	z-index: 1040;
+}
+.salon-usermenu.open .salon-usermenu-pop {
+	display: block;
+}
+.salon-usermenu-head {
+	padding: 8px 10px 10px;
+	border-bottom: 1px solid #f0f0f0;
+	margin-bottom: 4px;
+}
+.salon-usermenu-head b {
+	display: block;
+	font-size: 13px;
+	color: #1a1a1a;
+}
+.salon-usermenu-head span {
+	font-size: 12px;
+	color: #8a8a8a;
+}
+.salon-usermenu-pop a {
+	display: block;
+	padding: 8px 10px;
+	border-radius: 6px;
+	font-size: 13px;
+	color: #333;
+	text-decoration: none;
+}
+.salon-usermenu-pop a:hover {
+	background: #fdeaee;
+	color: #e4002b;
+}
+
+/* Drawer = the old sidebar, off-canvas until Menu is pressed. */
+.salon-shell > .salon-sidebar.salon-drawer {
+	position: fixed;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	width: min(280px, 86vw);
+	height: auto;
+	z-index: 1035;
+	border-right: none;
+	box-shadow: 8px 0 30px rgba(0, 0, 0, 0.14);
+	transform: translateX(-104%);
+	transition: transform 0.2s ease;
+	visibility: hidden;
+}
+body.salon-menu-open .salon-shell > .salon-sidebar.salon-drawer {
+	transform: none;
+	visibility: visible;
+}
+.salon-scrim {
+	position: fixed;
+	inset: 0;
+	background: rgba(26, 26, 26, 0.28);
+	z-index: 1030;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.2s ease;
+}
+body.salon-menu-open .salon-scrim {
+	opacity: 1;
+	pointer-events: auto;
+}
+.salon-drawer .salon-brand {
+	position: relative;
+}
+.salon-drawer-close {
+	margin-left: auto;
+	width: 28px;
+	height: 28px;
+	border: none;
+	background: none;
+	font-size: 22px;
+	line-height: 1;
+	color: #8a8a8a;
+	cursor: pointer;
+	border-radius: 6px;
+}
+.salon-drawer-close:hover {
+	background: #f5f5f5;
+	color: #1a1a1a;
+}
+.salon-drawer nav a {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 5px 10px;
+}
+.salon-nav-ico {
+	width: 20px;
+	height: 20px;
+	flex-shrink: 0;
+	display: inline-flex;
+}
+.salon-nav-ico svg {
+	width: 20px;
+	height: 20px;
+}
+.salon-ext {
+	color: #b3b3b3;
+	font-size: 11px;
+}
+
+/* ============================================================
+   Home: module grid
+   ============================================================ */
+.salon-shell.salon-home-shell {
+	display: block;
+	overflow-y: auto;
+}
+.sg-home {
+	min-height: 100%;
+	background: radial-gradient(1200px 600px at 85% -10%, rgba(228, 0, 43, 0.07), transparent 60%),
+		linear-gradient(160deg, #fbf7f8 0%, #f5eef0 55%, #fbf8f9 100%);
+	color: #333;
+}
+.sg-topbar {
+	height: 56px;
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	padding: 0 28px;
+}
+.sg-brand {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-weight: 700;
+	font-size: 15px;
+	color: #1a1a1a;
+	letter-spacing: -0.01em;
+	flex-shrink: 0;
+}
+.sg-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: #e4002b;
+}
+.sg-search {
+	margin: 0 auto;
+	width: min(420px, 40vw);
+	height: 36px;
+	border: 1px solid rgba(0, 0, 0, 0.08);
+	border-radius: 18px;
+	background: rgba(255, 255, 255, 0.8);
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 0 14px;
+	color: #9a9a9a;
+	cursor: text;
+}
+.sg-search input {
+	border: none;
+	outline: none;
+	background: transparent;
+	width: 100%;
+	font: inherit;
+	font-size: 13px;
+	color: #1a1a1a;
+}
+.sg-search:focus-within {
+	border-color: #e4002b;
+	box-shadow: 0 0 0 3px #fdeaee;
+}
+.sg-home .salon-top-branch {
+	background: rgba(255, 255, 255, 0.8);
+}
+.sg-greet {
+	text-align: center;
+	margin: 18px 0 6px;
+	font-size: 13px;
+	color: #8a8a8a;
+}
+.sg-greet b {
+	display: block;
+	font-size: 22px;
+	color: #1a1a1a;
+	font-weight: 700;
+	letter-spacing: -0.01em;
+	margin-bottom: 2px;
+}
+.sg-grid {
+	display: grid;
+	grid-template-columns: repeat(6, 112px);
+	justify-content: center;
+	gap: 26px 30px;
+	padding: 26px 24px 48px;
+}
+.sg-app {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 9px;
+	text-decoration: none !important;
+	color: #333;
+	font-size: 13px;
+	text-align: center;
+}
+.sg-app[hidden] {
+	display: none;
+}
+.sg-tile {
+	width: 78px;
+	height: 78px;
+	border-radius: 16px;
+	background: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 4px 14px rgba(26, 26, 26, 0.07);
+	transition: transform 0.15s, box-shadow 0.15s;
+}
+.sg-tile svg {
+	width: 54px;
+	height: 54px;
+}
+.sg-app:hover .sg-tile,
+.sg-app:focus-visible .sg-tile {
+	transform: translateY(-2px);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06), 0 10px 24px rgba(228, 0, 43, 0.14);
+}
+.sg-app:focus-visible {
+	outline: none;
+}
+.sg-app:focus-visible .sg-tile {
+	outline: 2px solid #e4002b;
+	outline-offset: 3px;
+}
+.sg-empty {
+	text-align: center;
+	color: #8a8a8a;
+}
+@media (max-width: 900px) {
+	.sg-grid {
+		grid-template-columns: repeat(4, 112px);
+	}
+}
+
+/* ============================================================
+   Mobile & tablet — every suite screen
+   ============================================================ */
+@media (max-width: 768px) {
+	/* Top bar */
+	.salon-topbar {
+		padding: 0 12px;
+		gap: 8px;
+	}
+	.salon-menu-btn span,
+	.salon-topbar .salon-top-branch {
+		display: none;
+	}
+	.salon-menu-btn {
+		width: 34px;
+		padding: 0;
+	}
+	.salon-crumb {
+		font-size: 14px;
+		gap: 8px;
+	}
+
+	/* Page frame: normal vertical scrolling inside the screen */
+	.salon-main,
+	.salon-main.salon-main-fit,
+	.salon-cal-main {
+		padding: 16px !important;
+		display: block;
+		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+	.salon-table-scroll {
+		overflow: visible;
+		border: none;
+		background: transparent;
+	}
+	.salon-shell h1,
+	.salon-pagehead h1,
+	.salon-header h1,
+	.salon-cal-title h1 {
+		font-size: 18px;
+	}
+
+	/* Headers / toolbars stack, controls wrap and share the width */
+	.salon-pagehead,
+	.salon-header,
+	.salon-cal-toolbar,
+	.salon-list-head,
+	.salon-schedule-head {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 12px;
+	}
+	.salon-pagehead > .salon-btn,
+	.salon-pagehead > div:last-child:not(:first-child) {
+		align-self: stretch;
+	}
+	.salon-pagehead .salon-btn {
+		width: 100%;
+	}
+	.salon-cal-controls,
+	.salon-main-fit .salon-cal-controls {
+		flex-wrap: wrap;
+		justify-content: flex-start;
+		width: 100%;
+	}
+	.salon-cal-controls .form-control,
+	.salon-cal-date,
+	.salon-cal-branch,
+	.salon-list-head .form-control {
+		flex: 1 1 140px;
+		width: auto !important;
+		min-width: 0 !important;
+	}
+	.salon-cal-new {
+		flex: 1 1 100%;
+	}
+
+	/* Tables -> one card per row, each value labelled with its column */
+	.salon-shell .salon-table,
+	.salon-shell .salon-table tbody,
+	.salon-shell .salon-table tfoot,
+	.salon-shell .salon-table tr,
+	.salon-shell .salon-table td {
+		display: block;
+		width: 100%;
+	}
+	.salon-shell .salon-table {
+		background: transparent;
+		border: none;
+		border-radius: 0;
+		overflow: visible;
+		margin-bottom: 16px !important;
+	}
+	.salon-shell .salon-table thead {
+		display: none;
+	}
+	.salon-shell .salon-table tr,
+	.salon-shell .salon-table td {
+		box-sizing: border-box;
+	}
+	.salon-shell .salon-table td > .cell-val {
+		min-width: 0;
+		overflow-wrap: anywhere;
+	}
+	.salon-shell .salon-table td > .cell-val .salon-muted {
+		display: inline;
+		margin-left: 6px;
+	}
+	.salon-shell .salon-table tr {
+		background: #fff;
+		border: 1px solid #eee;
+		border-radius: 10px;
+		padding: 4px 12px;
+		margin-bottom: 10px;
+	}
+	.salon-shell .salon-table td,
+	.salon-shell .salon-table .col-stock,
+	.salon-shell .salon-table .col-branch {
+		display: flex !important;
+		justify-content: space-between;
+		align-items: center;
+		gap: 12px;
+		padding: 7px 0;
+		border-bottom: 1px solid #f5f5f5;
+		text-align: right;
+		white-space: normal;
+	}
+	.salon-shell .salon-table td:last-child {
+		border-bottom: none;
+	}
+	.salon-shell .salon-table td::before {
+		content: attr(data-label);
+		flex-shrink: 0;
+		max-width: 45%;
+		text-align: left;
+		font-size: 11px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: #8a8a8a;
+	}
+	.salon-shell .salon-table td[colspan] {
+		justify-content: flex-start;
+		text-align: left;
+	}
+	.salon-shell .salon-table td[colspan]::before,
+	.salon-shell .salon-table td:not([data-label])::before {
+		content: none;
+	}
+	.salon-shell .salon-table td:empty {
+		display: none !important;
+	}
+	.salon-table .cell-sub {
+		display: inline-block;
+		margin: 0 0 0 6px;
+	}
+	.salon-row-actions {
+		justify-content: flex-end !important;
+	}
+
+	/* Card / tile grids */
+	.salon-kpis,
+	.salon-summary-row,
+	#leave-body .salon-summary-row {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 10px;
+	}
+	.salon-card {
+		padding: 14px;
+	}
+	.salon-card-value {
+		font-size: 18px;
+	}
+	.salon-stat-row {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 8px;
+	}
+	.salon-pricing-grid,
+	.salon-tier-grid,
+	.salon-profile-grid,
+	.rp-grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.salon-purchase-tiles {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+	.salon-tabs {
+		display: flex;
+		max-width: 100%;
+		overflow-x: auto;
+	}
+	.salon-tabs button {
+		flex: 1 0 auto;
+		white-space: nowrap;
+	}
+
+	/* Attendance */
+	.salon-myday {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 14px;
+	}
+	.salon-myday-stats {
+		justify-content: space-between;
+		gap: 12px;
+	}
+	.salon-myday-actions {
+		flex-wrap: wrap;
+	}
+	.salon-myday-actions .form-control,
+	.salon-myday-actions .salon-btn {
+		flex: 1 1 140px;
+	}
+
+	/* Calendar: the stylist grid scrolls inside its own box */
+	.salon-cal-grid-wrap {
+		height: 70vh;
+	}
+	.cal-board {
+		overflow-x: auto;
+	}
+
+	/* Reports */
+	.rp-columns {
+		height: 140px;
+	}
+	.rp-bar-row {
+		grid-template-columns: minmax(80px, 36%) minmax(0, 1fr) auto;
+		gap: 8px;
+	}
+	.rp-panel {
+		padding: 14px;
+	}
+
+	/* Client 360 / popups */
+	.salon-profile-header {
+		padding: 20px 16px;
+	}
+	.salon-popup-actions .salon-btn {
+		flex: 1 1 auto;
+	}
+}
+
+@media (max-width: 640px) {
+	.sg-topbar {
+		flex-wrap: wrap;
+		height: auto;
+		padding: 12px 16px;
+		gap: 10px;
+	}
+	.sg-search {
+		order: 3;
+		width: 100%;
+		margin: 0;
+	}
+	.sg-home .salon-top-branch {
+		display: none;
+	}
+	.sg-greet b {
+		font-size: 19px;
+	}
+	.sg-grid {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 20px 8px;
+		padding: 20px 12px 40px;
+	}
+	.sg-tile {
+		width: 62px;
+		height: 62px;
+		border-radius: 14px;
+	}
+	.sg-tile svg {
+		width: 42px;
+		height: 42px;
+	}
+	.sg-app {
+		font-size: 11.5px;
+		gap: 7px;
+	}
+}
+.salon-cal-controls a.btn {
+	display: inline-flex;
+	align-items: center;
+	text-decoration: none !important;
+	white-space: nowrap;
+}
