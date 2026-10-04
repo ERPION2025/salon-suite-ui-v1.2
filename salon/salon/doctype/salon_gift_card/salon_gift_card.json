@@ -1,0 +1,43 @@
+{
+ "doctype": "DocType",
+ "name": "Salon Gift Card",
+ "module": "Salon",
+ "custom": 0,
+ "engine": "InnoDB",
+ "autoname": "field:code",
+ "title_field": "code",
+ "track_changes": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "field_order": [
+  "code", "status", "value", "balance", "column_break_1", "issue_date", "expiry_date", "cost_center", "company",
+  "section_break_people", "customer", "recipient_name", "column_break_2", "recipient_email", "recipient_mobile",
+  "message", "section_break_links", "sales_invoice", "redemptions"
+ ],
+ "fields": [
+  {"fieldname": "code", "label": "Card Code", "fieldtype": "Data", "unique": 1, "read_only": 1, "in_list_view": 1, "bold": 1},
+  {"fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Active\nFully Redeemed\nExpired\nCancelled", "default": "Active", "in_list_view": 1, "in_standard_filter": 1},
+  {"fieldname": "value", "label": "Value", "fieldtype": "Currency", "reqd": 1, "in_list_view": 1},
+  {"fieldname": "balance", "label": "Balance", "fieldtype": "Currency", "read_only": 1, "in_list_view": 1},
+  {"fieldname": "column_break_1", "fieldtype": "Column Break"},
+  {"fieldname": "issue_date", "label": "Issued On", "fieldtype": "Date", "default": "Today"},
+  {"fieldname": "expiry_date", "label": "Expires On", "fieldtype": "Date"},
+  {"fieldname": "cost_center", "label": "Sold At (Branch)", "fieldtype": "Link", "options": "Cost Center", "in_standard_filter": 1},
+  {"fieldname": "company", "label": "Company", "fieldtype": "Link", "options": "Company", "read_only": 1},
+  {"fieldname": "section_break_people", "fieldtype": "Section Break", "label": "Buyer & Recipient"},
+  {"fieldname": "customer", "label": "Bought By", "fieldtype": "Link", "options": "Customer"},
+  {"fieldname": "recipient_name", "label": "Recipient Name", "fieldtype": "Data"},
+  {"fieldname": "column_break_2", "fieldtype": "Column Break"},
+  {"fieldname": "recipient_email", "label": "Recipient Email", "fieldtype": "Data", "options": "Email"},
+  {"fieldname": "recipient_mobile", "label": "Recipient Mobile", "fieldtype": "Data", "options": "Phone"},
+  {"fieldname": "message", "label": "Message", "fieldtype": "Small Text"},
+  {"fieldname": "section_break_links", "fieldtype": "Section Break", "label": "Accounting"},
+  {"fieldname": "sales_invoice", "label": "Sales Invoice", "fieldtype": "Link", "options": "Sales Invoice", "read_only": 1},
+  {"fieldname": "redemptions", "label": "Redemptions", "fieldtype": "Table", "options": "Salon Gift Card Redemption", "read_only": 1}
+ ],
+ "permissions": [
+  {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1, "export": 1},
+  {"role": "Salon Manager", "read": 1, "write": 1, "create": 1, "report": 1},
+  {"role": "Salon User", "read": 1, "write": 1, "create": 1, "report": 1}
+ ]
+}

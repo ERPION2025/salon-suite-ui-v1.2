@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>{{ title }} — {{ company }}</title>
+	<link rel="stylesheet" href="/assets/frappe/css/fonts/inter/inter.css">
+	<link rel="stylesheet" href="/assets/salon/css/salon_public.css">
+	<script>window.frappe = window.frappe || {};</script>
+	<!-- csrf_token -->
+</head>
+<body>
+	<div class="sp-wrap">
+		<aside class="sp-brand">
+			<div class="sp-logo"><span class="sp-logo-dot"></span>{{ company }}</div>
+			<div>
+				<h1>Book your next appointment.</h1>
+				<p>Pick a branch, a service and a time that suits you — we'll confirm by message.</p>
+			</div>
+			<div class="sp-brand-foot">Staff? <a href="/login" style="color:#fff;text-decoration:underline">Sign in</a></div>
+		</aside>
+
+		<main class="sp-main">
+			<div class="sp-card" style="max-width:460px">
+				<div class="sp-steps"><span class="on"></span><span></span><span></span></div>
+				<div class="sp-msg" id="bk-msg" role="alert"></div>
+
+				<!-- Step 1 -->
+				<section id="bk-step1">
+					<h2>What would you like?</h2>
+					<p class="sp-sub">Choose a branch and a service.</p>
+					<div class="sp-field">
+						<label for="bk-branch">Branch</label>
+						<select class="sp-select" id="bk-branch"></select>
+					</div>
+					<div class="sp-field">
+						<label>Service</label>
+						<div class="sp-options" id="bk-services"><div class="sp-empty">Loading…</div></div>
+					</div>
+					<div class="sp-actions"><button class="sp-btn" id="bk-next1" disabled>Continue</button></div>
+				</section>
+
+				<!-- Step 2 -->
+				<section id="bk-step2" style="display:none">
+					<h2>When suits you?</h2>
+					<p class="sp-sub" id="bk-step2-sub"></p>
+					<div class="sp-grid2">
+						<div class="sp-field">
+							<label for="bk-stylist">Stylist</label>
+							<select class="sp-select" id="bk-stylist"></select>
+						</div>
+						<div class="sp-field">
+							<label for="bk-date">Date</label>
+							<input class="sp-input" type="date" id="bk-date">
+						</div>
+					</div>
+					<div class="sp-field">
+						<label>Available times</label>
+						<div class="sp-slots" id="bk-slots"></div>
+					</div>
+					<div class="sp-actions">
+						<button class="sp-btn sp-btn-ghost" data-back="1">Back</button>
+						<button class="sp-btn" id="bk-next2" disabled>Continue</button>
+					</div>
+				</section>
+
+				<!-- Step 3 -->
+				<section id="bk-step3" style="display:none">
+					<h2>Your details</h2>
+					<p class="sp-sub">So we can confirm and remind you.</p>
+					<div class="sp-summary" id="bk-summary"></div>
+					<div class="sp-field">
+						<label for="bk-name">Full name</label>
+						<input class="sp-input" id="bk-name" autocomplete="name">
+					</div>
+					<div class="sp-grid2">
+						<div class="sp-field">
+							<label for="bk-mobile">Mobile</label>
+							<input class="sp-input" id="bk-mobile" type="tel" autocomplete="tel" placeholder="+974 …">
+						</div>
+						<div class="sp-field">
+							<label for="bk-email">Email (optional)</label>
+							<input class="sp-input" id="bk-email" type="email" autocomplete="email">
+						</div>
+					</div>
+					<div class="sp-field">
+						<label for="bk-notes">Anything we should know? (optional)</label>
+						<textarea class="sp-textarea" id="bk-notes" maxlength="500"></textarea>
+					</div>
+					<div class="sp-actions">
+						<button class="sp-btn sp-btn-ghost" data-back="2">Back</button>
+						<button class="sp-btn" id="bk-submit">Book appointment</button>
+					</div>
+				</section>
+
+				<!-- Done -->
+				<section id="bk-done" style="display:none" class="sp-done">
+					<div class="sp-done-mark">✓</div>
+					<h2>You're booked in</h2>
+					<p class="sp-sub" id="bk-done-text"></p>
+					<button class="sp-btn sp-btn-ghost" onclick="window.location.reload()">Book another</button>
+				</section>
+			</div>
+		</main>
+	</div>
+
+	<script>
+	(function () {
+		var $ = function (id) { return document.getElementById(id); };
+		var state = { branch: null, service: null, stylist: '', date: null, time: null };
+		var opts = null;
+
+		function esc(s) {
+			return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+				return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+			});
+		}
+		function money(v) {
+			var cur = (opts && opts.currency) || '';
+			return (Number(v) || 0).toFixed(2) + (cur ? ' ' + cur : '');
+		}
+		function msg(text) {
+			var el = $('bk-msg');
+			el.textContent = text || '';
+			el.className = 'sp-msg' + (text ? ' error' : '');
+		}
+		function err_text(data, fallback) {
+			if (data && data._server_messages) {
+				try { return JSON.parse(JSON.parse(data._server_messages)[0]).message.replace(/<[^>]+>/g, ''); } catch (e) {}
+			}
+			if (data && data.exc_type === 'TooManyRequestsError') return 'Too many attempts — please try again later.';
+			return fallback;
+		}
+		function api(method, args, post) {
+			var url = '/api/method/salon.online_booking.' + method;
+			var init = { credentials: 'same-origin', headers: { 'Accept': 'application/json' } };
+			if (post) {
+				init.method = 'POST';
+				init.headers['Content-Type'] = 'application/json';
+				if (window.frappe.csrf_token) init.headers['X-Frappe-CSRF-Token'] = window.frappe.csrf_token;
+				init.body = JSON.stringify(args || {});
+			} else if (args) {
+				url += '?' + new URLSearchParams(args).toString();
+			}
+			return fetch(url, init).then(function (r) {
+				return r.json().catch(function () { return {}; }).then(function (d) {
+					if (!r.ok) throw d;
+					return d.message;
+				});
+			});
+		}
+		function step(n) {
+			['bk-step1', 'bk-step2', 'bk-step3', 'bk-done'].forEach(function (id, i) {
+				$(id).style.display = i + 1 === n ? '' : 'none';
+			});
+			document.querySelectorAll('.sp-steps span').forEach(function (s, i) { s.className = i < n ? 'on' : ''; });
+			msg('');
+		}
+		function today() {
+			var d = new Date();
+			return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+		}
+
+		// ---- Step 1 ----
+		function render_services() {
+			var box = $('bk-services');
+			if (!opts.services.length) {
+				box.innerHTML = '<div class="sp-empty">Online booking isn\'t open yet — please call the salon.</div>';
+				return;
+			}
+			var group = null, html = '';
+			opts.services.forEach(function (s) {
+				if (s.item_group !== group) { group = s.item_group; }
+				html += '<button type="button" class="sp-option' + (state.service === s.name ? ' on' : '') + '" data-service="' + esc(s.name) + '">' +
+					'<span>' + esc(s.item_name) + '<small>' + esc(s.item_group) + ' · ' + s.duration + ' min</small></span>' +
+					'<b>' + (s.rate ? money(s.rate) : '') + '</b></button>';
+			});
+			box.innerHTML = html;
+		}
+		$('bk-services').addEventListener('click', function (e) {
+			var b = e.target.closest('[data-service]');
+			if (!b) return;
+			state.service = b.dataset.service;
+			render_services();
+			$('bk-next1').disabled = !(state.branch && state.service);
+		});
+		$('bk-branch').addEventListener('change', function () {
+			state.branch = this.value;
+			$('bk-next1').disabled = !(state.branch && state.service);
+		});
+		$('bk-next1').addEventListener('click', function () {
+			var stylists = opts.stylists[state.branch] || [];
+			$('bk-stylist').innerHTML = '<option value="">Any available stylist</option>' + stylists.map(function (s) {
+				return '<option value="' + esc(s.name) + '">' + esc(s.stylist_name) + '</option>';
+			}).join('');
+			var svc = opts.services.filter(function (s) { return s.name === state.service; })[0];
+			var br = opts.branches.filter(function (b) { return b.name === state.branch; })[0];
+			$('bk-step2-sub').textContent = svc.item_name + ' at ' + (br ? br.label : '');
+			state.stylist = '';
+			state.date = state.date || today();
+			$('bk-date').min = today();
+			var max = new Date(); max.setDate(max.getDate() + (opts.max_days_ahead || 60));
+			$('bk-date').max = max.toISOString().slice(0, 10);
+			$('bk-date').value = state.date;
+			step(2);
+			load_slots();
+		});
+
+		// ---- Step 2 ----
+		function load_slots() {
+			state.time = null;
+			$('bk-next2').disabled = true;
+			var box = $('bk-slots');
+			box.innerHTML = '<div class="sp-empty">Checking availability…</div>';
+			var args = { branch: state.branch, service: state.service, date: state.date };
+			if (state.stylist) args.stylist = state.stylist;
+			api('get_slots', args).then(function (slots) {
+				if (!slots || !slots.length) {
+					box.innerHTML = '<div class="sp-empty">No free times on this day — try another date or stylist.</div>';
+					return;
+				}
+				box.innerHTML = slots.map(function (t) {
+					return '<button type="button" class="sp-slot" data-time="' + t + '">' + t + '</button>';
+				}).join('');
+			}).catch(function (d) { box.innerHTML = ''; msg(err_text(d, 'Could not load times.')); });
+		}
+		$('bk-stylist').addEventListener('change', function () { state.stylist = this.value; load_slots(); });
+		$('bk-date').addEventListener('change', function () { state.date = this.value; load_slots(); });
+		$('bk-slots').addEventListener('click', function (e) {
+			var b = e.target.closest('[data-time]');
+			if (!b) return;
+			state.time = b.dataset.time;
+			document.querySelectorAll('.sp-slot').forEach(function (x) { x.classList.toggle('on', x === b); });
+			$('bk-next2').disabled = false;
+		});
+		$('bk-next2').addEventListener('click', function () {
+			var svc = opts.services.filter(function (s) { return s.name === state.service; })[0];
+			var br = opts.branches.filter(function (b) { return b.name === state.branch; })[0];
+			var st = $('bk-stylist').selectedOptions[0];
+			$('bk-summary').innerHTML =
+				'<div><span>Service</span><b>' + esc(svc.item_name) + '</b></div>' +
+				'<div><span>Branch</span><b>' + esc(br ? br.label : '') + '</b></div>' +
+				'<div><span>Stylist</span><b>' + esc(st ? st.textContent : '') + '</b></div>' +
+				'<div><span>When</span><b>' + esc(new Date(state.date + 'T00:00').toDateString()) + ', ' + state.time + '</b></div>' +
+				(svc.rate ? '<div><span>Price</span><b>' + money(svc.rate) + '</b></div>' : '');
+			step(3);
+			$('bk-name').focus();
+		});
+
+		document.querySelectorAll('[data-back]').forEach(function (b) {
+			b.addEventListener('click', function () { step(Number(b.dataset.back)); });
+		});
+
+		// ---- Step 3 ----
+		$('bk-submit').addEventListener('click', function () {
+			var name = $('bk-name').value.trim(), mobile = $('bk-mobile').value.trim();
+			if (!name || !mobile) { msg('Please enter your name and mobile number.'); return; }
+			var btn = this;
+			btn.disabled = true; btn.textContent = 'Booking…';
+			api('create_online_booking', {
+				branch: state.branch, service: state.service, date: state.date, time: state.time,
+				stylist: state.stylist || null, full_name: name, mobile: mobile,
+				email: $('bk-email').value.trim() || null, notes: $('bk-notes').value.trim() || null
+			}, true).then(function (r) {
+				$('bk-done-text').textContent = 'Reference ' + r.booking + ' · ' + r.when + (r.stylist ? ' with ' + r.stylist : '') +
+					'. The salon will confirm shortly.';
+				step(4);
+			}).catch(function (d) {
+				btn.disabled = false; btn.textContent = 'Book appointment';
+				msg(err_text(d, 'Could not book — please try again.'));
+				if (d && d._server_messages && /taken/.test(d._server_messages)) { step(2); load_slots(); }
+			});
+		});
+
+		// ---- Load ----
+		api('get_booking_options').then(function (o) {
+			opts = o;
+			$('bk-branch').innerHTML = o.branches.map(function (b) {
+				return '<option value="' + esc(b.name) + '">' + esc(b.label) + '</option>';
+			}).join('');
+			state.branch = o.branches.length ? o.branches[0].name : null;
+			render_services();
+		}).catch(function () { msg('Online booking is unavailable right now.'); });
+	})();
+	</script>
+</body>
+</html>

@@ -144,6 +144,36 @@ Covers:
 - **Stock Entry** popup (`salon/stock.py`) — Material Transfer / Receipt /
   Issue with store rooms, items, qty and receipt rate; submitted at once.
   Branch staff must have their branch's store room on one side.
+- **Salon login page** (`salon/www/login.html` + `login.py`) — replaces
+  Frappe's /login with a red/white Salon Suite sign-in (email + password,
+  show/hide, forgot-password email) and no Frappe web chrome. Anyone with
+  Salon User or Salon Manager lands on the Salon Dashboard after signing
+  in (`salon.auth.get_landing_page`, plus a desk-side fallback); a safe
+  `?redirect-to=` is still honoured.
+- **Online booking** (`/book`, `salon/online_booking.py`) — public page:
+  branch → service → stylist (or any) → date → free slot → name/mobile/
+  email. Creates a *Tentative* Salon Booking (Source = Online) and the
+  Customer if new, and sends a confirmation. Services shown: Items ticked
+  *Bookable Online* (else items in "…Service…" Item Groups and non-stock
+  sales items); *Service Duration (Minutes)* on the Item sets slot length.
+  Opening hours via site_config `salon_open_time` / `salon_close_time`
+  (default 10:00–21:00). Booking creation is rate-limited (5/hour/IP).
+- **Reminders & WhatsApp** (`salon/notifications.py`) — hourly job emails
+  / SMSes a reminder for bookings in the next 24 h (needs an outgoing
+  Email Account and/or SMS Settings); booking popup has *Send reminder*
+  and *WhatsApp* (wa.me click-to-chat with the message pre-filled);
+  Client 360 has a WhatsApp button.
+- **Gift cards** (`/app/salon-gift-cards`, `salon/gift_cards.py`) — sell
+  (submitted invoice booked to a *Gift Card Liability* account), check
+  balance, and take a card as payment from the invoice popup (*Record
+  Payment → Gift Card*), which posts a Journal Entry against the invoice.
+  Daily job expires cards past their date.
+- **Reports & Analytics** (`/app/salon-reports`, `salon/reports.py`) —
+  revenue, average ticket, payments received, completed vs booked,
+  no-show rate, new clients, online share; revenue by day, top services,
+  stylists (with commission), branches, payment mix, booking statuses and
+  top clients — today / 7 days / this month / last month / custom, per
+  branch.
 - **Client preferences** — `Customer` gained 6 Custom Fields (stylist
   preference, color formula, allergies, birthday — see
   `salon/fixtures/custom_field.json`) backing Client 360's Preferences

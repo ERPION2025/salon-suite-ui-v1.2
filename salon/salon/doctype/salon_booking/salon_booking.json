@@ -14,7 +14,8 @@
   "naming_series", "customer", "salon_stylist", "cost_center", "column_break_1",
   "booking_datetime", "end_datetime", "status", "section_break_services", "services", "total_amount",
   "section_break_redemption", "package_subscription", "section_break_links",
-  "sales_invoice", "stock_entry", "additional_salary", "notes"
+  "sales_invoice", "stock_entry", "additional_salary", "notes",
+  "section_break_engagement", "booking_source", "reminder_sent"
  ],
  "fields": [
   {"fieldname": "naming_series", "label": "Series", "fieldtype": "Select", "options": "SALON-BK-.YYYY.-.#####", "reqd": 1, "hidden": 1},
@@ -34,7 +35,10 @@
   {"fieldname": "sales_invoice", "label": "Sales Invoice", "fieldtype": "Link", "options": "Sales Invoice", "read_only": 1},
   {"fieldname": "stock_entry", "label": "Stock Entry", "fieldtype": "Link", "options": "Stock Entry", "read_only": 1},
   {"fieldname": "additional_salary", "label": "Commission Entry", "fieldtype": "Link", "options": "Additional Salary", "read_only": 1},
-  {"fieldname": "notes", "label": "Notes", "fieldtype": "Small Text"}
+  {"fieldname": "notes", "label": "Notes", "fieldtype": "Small Text"},
+  {"fieldname": "section_break_engagement", "fieldtype": "Section Break", "label": "Engagement"},
+  {"fieldname": "booking_source", "label": "Source", "fieldtype": "Select", "options": "Walk-in\nPhone\nOnline\nWhatsApp", "default": "Walk-in", "in_standard_filter": 1},
+  {"fieldname": "reminder_sent", "label": "Reminder Sent", "fieldtype": "Check", "read_only": 1, "default": 0}
  ],
  "permissions": [
   {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1, "export": 1, "select": 1},

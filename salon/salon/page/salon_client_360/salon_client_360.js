@@ -55,7 +55,7 @@ class SalonClient360 {
 					(c) => `<div class="salon-search-result" data-customer="${c.name}">
 						${frappe.utils.escape_html(c.customer_name)}
 						<span style="color:#9a9a9a">&middot; ${frappe.utils.escape_html(c.mobile_no || '')}</span>
-					</div>`
+					</div>`,
 				)
 				.join('');
 			el.querySelectorAll('.salon-search-result').forEach((row) => {
@@ -86,7 +86,10 @@ class SalonClient360 {
 				<div class="salon-avatar">${initials}</div>
 				<h2>${frappe.utils.escape_html(c.customer_name)}</h2>
 				<div class="salon-sub">${frappe.utils.escape_html(c.mobile_no || '')}${c.territory ? ' &middot; ' + frappe.utils.escape_html(c.territory) : ''}</div>
-				<button class="salon-btn salon-profile-action" id="salon-add-subscription">+ ${__('Add Subscription')}</button>
+				<div class="salon-profile-buttons">
+					<button class="salon-btn salon-profile-action" id="salon-add-subscription">+ ${__('Add Subscription')}</button>
+					${c.mobile_no ? `<button class="salon-btn salon-btn-ghost salon-profile-action" id="salon-client-whatsapp">${__('WhatsApp')}</button>` : ''}
+				</div>
 			</div>
 			<div class="salon-stat-row">
 				<div class="salon-stat-tile"><div class="v">${d.stats.visits}</div><div class="l">VISITS</div></div>
@@ -99,7 +102,8 @@ class SalonClient360 {
 		const has_prefs = p.preferred_stylist_name || p.color_formula || p.allergies || p.birthday;
 		if (has_prefs) {
 			html += `<div class="salon-prefs">`;
-			if (p.preferred_stylist_name) html += `<b>Stylist:</b> ${frappe.utils.escape_html(p.preferred_stylist_name)}<br>`;
+			if (p.preferred_stylist_name)
+				html += `<b>Stylist:</b> ${frappe.utils.escape_html(p.preferred_stylist_name)}<br>`;
 			if (p.color_formula) html += `<b>Color formula:</b> ${frappe.utils.escape_html(p.color_formula)}<br>`;
 			if (p.allergies) html += `<b>Allergies:</b> ${frappe.utils.escape_html(p.allergies)}<br>`;
 			if (p.birthday) html += `<b>Birthday:</b> ${frappe.datetime.str_to_user(p.birthday)}`;
@@ -145,6 +149,8 @@ class SalonClient360 {
 		document
 			.getElementById('salon-add-subscription')
 			.addEventListener('click', () => this.open_add_subscription(c.name, c.customer_name));
+		const wa = document.getElementById('salon-client-whatsapp');
+		if (wa) wa.addEventListener('click', () => salon_common.open_whatsapp({ customer: c.name }));
 	}
 
 	render_subscriptions(subs) {
@@ -168,7 +174,7 @@ class SalonClient360 {
 					<td>${s.start_date ? frappe.datetime.str_to_user(s.start_date) : '&mdash;'}</td>
 					<td>${s.expiry_date ? frappe.datetime.str_to_user(s.expiry_date) : '&mdash;'}</td>
 					<td>${s.sales_invoice ? salon_common.doc_link('sales-invoice', s.sales_invoice) : '&mdash;'}</td>
-				</tr>`
+				</tr>`,
 					)
 					.join('')
 			: `<tr><td colspan="8">${__('No subscriptions yet.')}</td></tr>`;
@@ -218,7 +224,9 @@ class SalonClient360 {
 						<div><span>${__('Client')}</span><b>${frappe.utils.escape_html(customer_name)}</b></div>
 						<div><span>${__('Price')}</span><b>${format_currency(p.rate)}</b></div>
 						<div><span>${__('Validity')}</span><b>${
-							p.custom_package_validity_days ? __('{0} days from payment', [p.custom_package_validity_days]) : __('No expiry')
+							p.custom_package_validity_days
+								? __('{0} days from payment', [p.custom_package_validity_days])
+								: __('No expiry')
 						}</b></div>
 						<p>${__('An invoice is created and the package becomes Active straight away. Record the payment from the invoice.')}</p>
 					</div>`);
@@ -283,7 +291,7 @@ class SalonClient360 {
 										fieldtype: 'HTML',
 										options: `<p>${__(
 											'Subscription {0} is {1}. Invoice {2} has been created — record the payment now or later from the invoice.',
-											[m.subscription, m.status, m.sales_invoice]
+											[m.subscription, m.status, m.sales_invoice],
 										)}</p>`,
 									},
 								],

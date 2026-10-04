@@ -16,6 +16,8 @@ const SALON_PAGES = [
 	'salon-pos-profiles',
 	'salon-attendance',
 	'salon-leave',
+	'salon-gift-cards',
+	'salon-reports',
 ];
 
 // Screens only Salon Manager (and System Manager) may open.
@@ -43,6 +45,7 @@ window.salon_common = {
 				{ key: 'loyalty', label: 'Loyalty', href: '/app/salon-loyalty' },
 				{ key: 'packages', label: 'Packages', href: '/app/salon-packages' },
 				{ key: 'services', label: 'Services', href: '/app/salon-services' },
+				{ key: 'gift-cards', label: 'Gift Cards', href: '/app/salon-gift-cards' },
 			],
 		},
 		{
@@ -82,7 +85,10 @@ window.salon_common = {
 		},
 		{
 			title: 'Finance — ERPNext',
-			items: [{ key: 'pnl', label: 'P&L by Branch', href: '/app/salon-pnl' }],
+			items: [
+				{ key: 'pnl', label: 'P&L by Branch', href: '/app/salon-pnl' },
+				{ key: 'reports', label: 'Reports & Analytics', href: '/app/salon-reports' },
+			],
 		},
 	],
 
@@ -308,6 +314,16 @@ window.salon_common = {
 								: ''
 						}
 						${b.notes ? `<div class="salon-popup-notes">${esc(b.notes)}</div>` : ''}
+						<div class="salon-popup-actions salon-popup-engage">
+							${b.booking_source ? `<span class="salon-muted">${__('Source')}: ${esc(__(b.booking_source))}</span>` : ''}
+							${b.reminder_sent ? `<span class="salon-muted">· ${__('Reminder sent')}</span>` : ''}
+							<button class="salon-btn salon-btn-ghost" data-whatsapp>${__('WhatsApp')}</button>
+							${
+								['Tentative', 'Confirmed'].includes(b.status)
+									? `<button class="salon-btn salon-btn-ghost" data-remind>${__('Send reminder')}</button>`
+									: ''
+							}
+						</div>
 						${
 							locked
 								? ''
@@ -339,6 +355,17 @@ window.salon_common = {
 						})
 						.then(() => done(__('Status updated')));
 				});
+				d.$wrapper.on('click', '[data-whatsapp]', () => this.open_whatsapp({ booking: b.name }));
+				d.$wrapper.on('click', '[data-remind]', () => {
+					frappe
+						.call({ method: 'salon.notifications.send_reminder', args: { booking: b.name }, freeze: true })
+						.then((r) =>
+							frappe.show_alert({
+								message: __('Reminder sent by {0}', [(r.message || []).join(' & ')]),
+								indicator: 'green',
+							}),
+						);
+				});
 				d.$wrapper.on('click', '[data-complete]', () => {
 					frappe
 						.call({ method: 'salon.api.complete_and_bill', args: { booking: b.name }, freeze: true })
@@ -351,6 +378,14 @@ window.salon_common = {
 				});
 				d.show();
 			});
+	},
+
+	// WhatsApp click-to-chat with a ready message (booking reminder, or a
+	// plain hello for a client).
+	open_whatsapp(args) {
+		frappe.call('salon.notifications.get_whatsapp_link', args).then((r) => {
+			if (r.message) window.open(r.message, '_blank', 'noopener');
+		});
 	},
 
 	// Sales Invoice popup: details, payments, and Record Payment for anything
@@ -447,14 +482,13 @@ window.salon_common = {
 	},
 
 	open_record_payment(inv, on_done) {
-		const modes = inv.modes_of_payment || [];
-		if (!modes.length) {
-			frappe.msgprint(__('No payment methods are set up for {0}.', [inv.company]));
-			return;
-		}
+		const GIFT = 'Gift Card';
+		const modes = (inv.modes_of_payment || []).concat([{ name: GIFT, account_type: 'Gift' }]);
 		const bank_modes = modes.filter((m) => m.account_type === 'Bank').map((m) => m.name);
 		const owed = flt(inv.outstanding_amount);
-		const d = this.make_dialog({
+		const is_gift = `eval:doc.mode_of_payment=='${GIFT}'`;
+		let d = null;
+		d = this.make_dialog({
 			title: __('Record Payment — {0}', [inv.name]),
 			fields: [
 				{
@@ -488,6 +522,30 @@ window.salon_common = {
 					depends_on: `eval:${JSON.stringify(bank_modes)}.includes(doc.mode_of_payment)`,
 					mandatory_depends_on: `eval:${JSON.stringify(bank_modes)}.includes(doc.mode_of_payment)`,
 				},
+				{
+					fieldname: 'gift_card',
+					label: __('Gift card code'),
+					fieldtype: 'Data',
+					depends_on: is_gift,
+					mandatory_depends_on: is_gift,
+					description: __('e.g. GC-AB12-CD34 — press Tab to check the balance'),
+					onchange: () => {
+						const code = (d && d.get_value('gift_card')) || '';
+						if (!code) return;
+						frappe.call('salon.gift_cards.get_gift_card', { code }).then((r) => {
+							const c = r.message || {};
+							const bal = flt(c.balance);
+							d.set_df_property(
+								'gift_card',
+								'description',
+								c.usable
+									? __('Balance {0}', [format_currency(bal, inv.currency)])
+									: __('This card is {0}', [c.status]),
+							);
+							if (c.usable) d.set_value('amount', Math.min(bal, owed));
+						});
+					},
+				},
 				{ fieldname: 'currency', fieldtype: 'Data', hidden: 1, default: inv.currency },
 			],
 			primary_action_label: __('Save Payment'),
@@ -496,26 +554,39 @@ window.salon_common = {
 					frappe.msgprint(__('Amount must be between 0 and {0}', [format_currency(owed, inv.currency)]));
 					return;
 				}
-				frappe
-					.call({
-						method: 'salon.salon.billing.record_payment',
-						args: {
-							invoice: inv.name,
-							mode_of_payment: values.mode_of_payment,
-							amount: values.amount,
-							posting_date: values.posting_date,
-							reference_no: values.reference_no,
-						},
-						freeze: true,
-					})
-					.then((r) => {
-						d.hide();
-						frappe.show_alert({
-							message: __('Payment {0} recorded', [(r.message || {}).payment_entry || '']),
-							indicator: 'green',
-						});
-						on_done && on_done();
+				const call =
+					values.mode_of_payment === GIFT
+						? {
+								method: 'salon.gift_cards.redeem_gift_card',
+								args: {
+									invoice: inv.name,
+									code: values.gift_card,
+									amount: values.amount,
+									posting_date: values.posting_date,
+								},
+							}
+						: {
+								method: 'salon.salon.billing.record_payment',
+								args: {
+									invoice: inv.name,
+									mode_of_payment: values.mode_of_payment,
+									amount: values.amount,
+									posting_date: values.posting_date,
+									reference_no: values.reference_no,
+								},
+							};
+				frappe.call(Object.assign({ freeze: true }, call)).then((r) => {
+					d.hide();
+					const m = r.message || {};
+					frappe.show_alert({
+						message:
+							values.mode_of_payment === GIFT
+								? __('Paid by gift card — {0} left on the card', [format_currency(m.balance, inv.currency)])
+								: __('Payment {0} recorded', [m.payment_entry || '']),
+						indicator: 'green',
 					});
+					on_done && on_done();
+				});
 			},
 		});
 		d.show();
@@ -648,6 +719,17 @@ $(() => {
 			}
 		}
 	};
+
+	// Salon staff (Salon User / Salon Manager, System Managers included)
+	// land on the Salon Dashboard right after signing in, whichever login
+	// path they came through - not on the ERPNext workspace home.
+	const roles = frappe.user_roles || [];
+	const has_salon_role = roles.includes('Salon User') || roles.includes('Salon Manager');
+	const just_logged_in = /\/login(\?|$|#)/.test(document.referrer || '');
+	const first_page = current_page();
+	if (has_salon_role && just_logged_in && ['', 'home', 'workspaces', 'app'].includes(first_page)) {
+		frappe.set_route('salon-dashboard');
+	}
 
 	frappe.router.on('change', on_route);
 	on_route();

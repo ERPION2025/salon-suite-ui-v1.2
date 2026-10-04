@@ -109,5 +109,25 @@
   "options": "Cost Center",
   "insert_after": "device_id",
   "in_standard_filter": 1
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item-custom_bookable_online",
+  "dt": "Item",
+  "fieldname": "custom_bookable_online",
+  "label": "Bookable Online",
+  "fieldtype": "Check",
+  "insert_after": "custom_package_validity_days",
+  "description": "Show this service on the public online booking page (/book)"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Item-custom_service_minutes",
+  "dt": "Item",
+  "fieldname": "custom_service_minutes",
+  "label": "Service Duration (Minutes)",
+  "fieldtype": "Int",
+  "insert_after": "custom_bookable_online",
+  "description": "Used for online booking slots; blank = 30"
  }
 ]

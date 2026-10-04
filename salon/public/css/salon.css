@@ -1657,13 +1657,13 @@ body.salon-on-pos .point-of-sale-app .grand-total-value {
    Sidebar menu: clear section headings with separators.
    ============================================================ */
 .salon-brand {
-	padding: 0 10px 14px;
-	margin-bottom: 12px;
+	padding: 0 10px 12px;
+	margin-bottom: 8px;
 	border-bottom: 1px solid #eeeeee;
 }
 .salon-nav-group {
 	margin: 0;
-	padding: 8px 0;
+	padding: 6px 0;
 }
 .salon-nav-group + .salon-nav-group {
 	border-top: 1px solid #eeeeee;
@@ -1874,4 +1874,152 @@ body.salon-on-pos .point-of-sale-app .grand-total-value {
 }
 #leave-body .salon-summary-row {
 	grid-template-columns: repeat(auto-fill, minmax(180px, 220px));
+}
+.salon-profile-buttons {
+	display: flex;
+	gap: 8px;
+	justify-content: center;
+	flex-wrap: wrap;
+}
+.salon-popup-engage {
+	align-items: center;
+	justify-content: flex-start;
+	border-top: 1px solid #f0f0f0;
+	padding-top: 12px;
+}
+.salon-popup-engage .salon-btn:first-of-type {
+	margin-left: auto;
+}
+
+/* ============================================================
+   Reports & Analytics — one hue (brand red) per chart, thin
+   marks, 4px rounded data ends, values always printed as text.
+   ============================================================ */
+.rp-panel {
+	background: #fff;
+	border: 1px solid #eee;
+	border-radius: 10px;
+	padding: 16px 18px;
+	margin-bottom: 16px;
+	min-width: 0;
+}
+.rp-panel-head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 12px;
+}
+.rp-panel-head h2 {
+	margin: 0 !important;
+	font-size: 14px !important;
+}
+.rp-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+	gap: 0 16px;
+}
+.rp-columns {
+	display: flex;
+	align-items: stretch;
+	gap: 2px;
+	height: 180px;
+	border-bottom: 1px solid #e5e5e5;
+	padding-top: 6px;
+}
+.rp-col {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	cursor: default;
+}
+.rp-col-bar-wrap {
+	flex: 1;
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+}
+.rp-col-bar {
+	width: 100%;
+	max-width: 22px;
+	background: #e4002b;
+	border-radius: 4px 4px 0 0;
+	transition: background 0.1s;
+}
+.rp-col:hover .rp-col-bar {
+	background: #a3001f;
+}
+.rp-col-label {
+	position: relative;
+	top: 4px;
+	height: 16px;
+	font-size: 10px;
+	color: #8a8a8a;
+	text-align: center;
+	white-space: nowrap;
+	overflow: visible;
+}
+#rp-by-day {
+	margin-bottom: 18px;
+}
+.rp-bars {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+.rp-bar-row {
+	display: grid;
+	grid-template-columns: minmax(90px, 32%) minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 10px;
+	padding: 2px 0;
+	cursor: default;
+}
+.rp-bar-row:hover .rp-bar {
+	background: #a3001f;
+}
+.rp-bar-label {
+	font-size: 13px;
+	color: #333;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.rp-bar-track {
+	height: 10px;
+	min-width: 0;
+}
+.rp-bar {
+	height: 100%;
+	background: #e4002b;
+	border-radius: 0 4px 4px 0;
+}
+.rp-bar-value {
+	font-size: 13px;
+	font-weight: 500;
+	color: #1a1a1a;
+	text-align: right;
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+}
+.rp-bar-value small {
+	display: block;
+	font-size: 11px;
+	font-weight: 400;
+	color: #8a8a8a;
+}
+.rp-tip {
+	display: none;
+	position: fixed;
+	z-index: 1060;
+	pointer-events: none;
+	background: #1a1a1a;
+	color: #fff;
+	font-size: 12px;
+	line-height: 1.4;
+	padding: 6px 9px;
+	border-radius: 6px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	font-family: var(--font-stack, 'Inter', sans-serif);
 }
