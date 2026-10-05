@@ -928,7 +928,9 @@ $(() => {
 		e.preventDefault();
 		document.body.classList.remove('salon-menu-open');
 	});
-	$(document).on('click', '.salon-drawer nav a', () => document.body.classList.remove('salon-menu-open'));
+	$(document).on('click', '.salon-drawer nav a', () => {
+		document.body.classList.remove('salon-menu-open');
+	});
 	$(document).on('click', '[data-salon-avatar]', (e) => {
 		e.preventDefault();
 		e.stopPropagation();
@@ -942,7 +944,13 @@ $(() => {
 			document.querySelectorAll('.salon-usermenu.open').forEach((el) => el.classList.remove('open'));
 		}
 	});
-	$(document).on('keydown', (e) => e.key === 'Escape' && close_menus());
+	// NB: must not return a value - jQuery treats a handler returning `false`
+	// as preventDefault + stopPropagation, which blocked typing in every
+	// input on every page (the arrow `e.key === 'Escape' && ...` returned
+	// false for all other keys).
+	$(document).on('keydown', (e) => {
+		if (e.key === 'Escape') close_menus();
+	});
 	frappe.router.on('change', close_menus);
 
 	$(document).on('click', '[data-salon-logout]', (e) => {
