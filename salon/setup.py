@@ -3,6 +3,7 @@ import frappe
 SALON_ROLE = "Salon User"
 MANAGER_ROLE = "Salon Manager"
 SALON_ROLES = (SALON_ROLE, MANAGER_ROLE)
+SALON_HOME = "/app/salon-home"
 
 # (doctype, read, write, create, submit)
 # Deliberately NOT a fixture: Custom DocPerm autonames via `hash` (random,
@@ -76,10 +77,11 @@ def after_migrate():
 def create_roles():
 	for role in SALON_ROLES:
 		if frappe.db.exists("Role", role):
-			# The POS Profiles page (page.json roles) can auto-create
-			# Salon Manager without a home page - fill it in.
-			if not frappe.db.get_value("Role", role, "home_page"):
-				frappe.db.set_value("Role", role, {"home_page": "/app/salon-dashboard", "desk_access": 1})
+			# Fill in a missing home page (the POS Profiles page can auto-
+			# create Salon Manager without one) and move roles still pointing
+			# at the old landing screen to the module grid.
+			if frappe.db.get_value("Role", role, "home_page") in (None, "", "/app/salon-dashboard"):
+				frappe.db.set_value("Role", role, {"home_page": SALON_HOME, "desk_access": 1})
 			continue
 		frappe.get_doc({
 			"doctype": "Role",
@@ -88,7 +90,7 @@ def create_roles():
 			# Role's own native home_page, not the blanket app_home hook -
 			# this way only salon staff land on the dashboard; System Manager
 			# and anyone else keeps Frappe's normal default landing page.
-			"home_page": "/app/salon-dashboard",
+			"home_page": SALON_HOME,
 		}).insert(ignore_permissions=True)
 
 
